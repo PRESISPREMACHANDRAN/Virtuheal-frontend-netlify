@@ -1,0 +1,27 @@
+.resultsList {
+    width: 30%;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0px 0px 8px #ddd;
+    border-radius: 10px;
+    margin-top: 1rem;
+    max-height: 300px;
+    overflow-y: scroll;
+    justify-content: center;
+}
+
+.searchResult {
+    padding: 10px 20px;
+}
+
+.searchResult:hover {
+    background-color: #efefef;
+}
+.SearchBarContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background-color: #F2F6FA;
+}

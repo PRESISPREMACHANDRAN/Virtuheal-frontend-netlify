@@ -1,0 +1,78 @@
+$card-padding: 1.8rem;
+$card-border-radius: 2rem;
+$border-radius-1: 0.4rem;
+$border-radius-2: 0.8rem;
+$border-radius-3: 1.2rem;
+$box-shadow: 0 2rem 3rem var(--color-light);
+$base-blue: #4D6CFA;
+
+main {
+  margin-top: 2rem;
+
+  .insights {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+
+    > div {
+      background: white;
+      padding: $card-padding;
+      border-radius: $card-border-radius;
+      margin-top: 1rem;
+      box-shadow: $box-shadow;
+      transition: all 300ms ease;
+
+      &:hover {
+        box-shadow: none;
+      }
+
+      span {
+        background: $base-blue;
+        padding: 0.5rem;
+        border-radius: 50%;
+        color: white;
+        font-size: 2rem;
+      }
+
+      .middle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      h3 {
+        margin: 1rem 0 0.6rem;
+        font-size: 1rem;
+      }
+    }
+
+    small {
+      margin-top: 1.6rem;
+      display: block;
+    }
+  }
+
+  .placeholder {
+    margin-top: 2rem;
+
+    h2 {
+      margin-bottom: 0.8rem;
+    }
+
+    .placeholder-card {
+      background: white;
+      width: 100%;
+      border-radius: $card-border-radius;
+      padding: $card-padding;
+      text-align: center;
+      box-shadow: $box-shadow;
+
+      &:hover {
+        box-shadow: none;
+      }
+
+    }
+
+  }
+
+}
