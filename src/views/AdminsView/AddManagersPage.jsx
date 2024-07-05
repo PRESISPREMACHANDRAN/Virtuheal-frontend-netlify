@@ -51,6 +51,7 @@ function AddManagersPage() {
     }, [passwd, passwdConfirm])
 
     useEffect(() => {
+        setSuccessMessage("")
         setErrorMessage('');
     }, [name, email, passwd, passwdConfirm])
 

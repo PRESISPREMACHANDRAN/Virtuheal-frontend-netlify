@@ -1,5 +1,6 @@
 import {useRef, useState, useEffect} from "react";
 import "./UploadFile.css";
+import {Badge} from "react-bootstrap";
 
 const UploadFile = ({onFileChange, reset}) => {
     const inputRef = useRef(null);
@@ -17,8 +18,15 @@ const UploadFile = ({onFileChange, reset}) => {
     const handleFileChange = (event) => {
         if (event.target.files && event.target.files.length > 0) {
             const file = event.target.files[0];
-            setSelectedFile(file);
-            onFileChange(file);
+            if (file.type === "application/pdf") {
+                setSelectedFile(file);
+                onFileChange(file);
+            } else {
+                alert("Please upload a PDF file.");
+                if (inputRef.current) {
+                    inputRef.current.value = "";
+                }
+            }
         }
     };
 
@@ -40,6 +48,7 @@ const UploadFile = ({onFileChange, reset}) => {
                 type="file"
                 onChange={handleFileChange}
                 style={{display: "none"}}
+                accept="application/pdf"
             />
             {!selectedFile && (
                 <button className="file-btn" onClick={onChooseFile}>
@@ -57,6 +66,9 @@ const UploadFile = ({onFileChange, reset}) => {
                     </div>
                 </div>
             )}
+            <Badge>
+                <small className="form-hint px-3 mx-5">Only PDF format is allowed.</small>
+            </Badge>
         </div>
     );
 };

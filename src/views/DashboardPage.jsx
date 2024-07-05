@@ -17,7 +17,7 @@ function DashboardPage() {
         try {
             const response = await axiosPrivate("/associates/")
             setNumAssociates(response?.data?.count);
-       } catch (error) {
+        } catch (error) {
             console.log("Error");
         }
     }
@@ -41,7 +41,7 @@ function DashboardPage() {
         try {
             const response = await axiosPrivate("/auth/users/",
                 {
-                    params : {
+                    params: {
                         type: "admin"
                     }
                 }
@@ -78,7 +78,7 @@ function DashboardPage() {
                                 <span className="material-symbols-rounded">person</span>
                                 <div className="middle">
                                     <div className="left">
-                                        <h3>Total associates</h3>
+                                        <h3>Total residents</h3>
                                         <h1>{numAssociates}</h1>
                                     </div>
                                     <div className="progress"></div>

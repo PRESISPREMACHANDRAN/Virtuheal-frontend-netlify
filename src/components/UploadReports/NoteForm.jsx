@@ -1,9 +1,11 @@
 import {useRef, useEffect} from 'react';
 import Form from 'react-bootstrap/Form';
 import './NoteForm.css';
+import {Badge} from "react-bootstrap";
 
 function NoteForm({note, onNoteChange}) {
     const textAreaRef = useRef(null);
+    const maxChars = 500;
 
     useEffect(() => {
         adjustTextAreaHeight();
@@ -22,20 +24,24 @@ function NoteForm({note, onNoteChange}) {
     };
 
     return (
-        <div className="form-container">
+        <div className="m-5">
             <Form className="note-form">
-                <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
-                    <Form.Label className="form-label">Add a note</Form.Label>
+                <Form.Group className="mx-5" controlId="exampleForm.ControlTextarea1">
+                    <Form.Label className="form-label">Addtional notes if any</Form.Label>
                     <Form.Control
                         as="textarea"
                         rows={3}
-                        className="form-control"
+                        className="form-control mb-3"
                         value={note}
                         onChange={handleNoteChange}
                         ref={textAreaRef}
                         style={{overflow: 'hidden'}}
+                        maxLength={maxChars}
                     />
                 </Form.Group>
+                <Badge bg={"dark"}>
+                    {note?.length}/{maxChars} characters
+                </Badge>
             </Form>
         </div>
     );

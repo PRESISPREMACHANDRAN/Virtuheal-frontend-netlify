@@ -55,25 +55,26 @@ function LoginPage() {
                     withCredentials: true,
                 },
             );
-            console.log(JSON.stringify(response?.data));
             const accessToken = response?.data?.access;
             const name = response?.data?.name;
             const isAdmin = response?.data?.is_admin;
             const isSuperAdmin = response?.data?.is_superadmin;
             const isManager = response?.data?.is_manager;
-            setAuth({
+            if (!isManager) {
+                setAuth({
                 name,
                 email,
                 password,
                 isSuperAdmin,
                 isAdmin,
-                isManager,
                 accessToken,
             });
-            console.log(auth);
             navigate(from, {replace: true});
             setEmail("");
             setPassword("");
+            } else {
+                setErrorMessage("Unauthorized. Manager accounts are not allowed.")
+            }
         } catch (error) {
             if (!error?.response) {
                 setErrorMessage("No Server Response");
