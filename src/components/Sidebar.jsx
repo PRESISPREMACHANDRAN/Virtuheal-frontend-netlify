@@ -58,6 +58,10 @@ function Sidebar() {
                             <span className="material-symbols-rounded">person_add</span>
                             <h3>Add manager</h3>
                         </NavLink>
+                        <NavLink className={({isActive}) => isActive ? styles.active : ""} to='/managers/manage'>
+                            <span className="material-symbols-rounded">manage_accounts</span>
+                            <h3>Manage manager</h3>
+                        </NavLink>
                         <NavLink className={({isActive}) => isActive ? styles.active : ""} to='/reports/view'>
                             <span className="material-symbols-rounded">contact_page</span>
                             <h3>Access reports</h3>

@@ -72,6 +72,7 @@ function AddAdminsPage() {
             );
             const data = response?.data;
             setSuccessMessage(`${data.name} has been successfully registered as new Admin.`);
+            setTimeout(()=>setSuccessMessage(""), 5000);
             setName('');
             setEmail("")
             setPasswd('');
@@ -79,8 +80,12 @@ function AddAdminsPage() {
         } catch (error) {
             if (!error?.response) {
                 setErrorMessage('No Server Response. Are you connected to internet?');
+            } else if (error?.response?.status === 400) {
+                console.log(error.response);
+                if (error.response?.data?.email[0] === "interface user with this email already exists.") {
+                    setErrorMessage("An admin account with this email already exists. Try adding with another email.")
+                }
             } else {
-                console.error('Error:', error);
                 setErrorMessage('An error occurred while adding admin');
             }
         } finally {
@@ -89,7 +94,7 @@ function AddAdminsPage() {
     };
 
     return (
-        <Container fluid className="mx-3 p-3">
+        <Container fluid className="m-3 border rounded-4 p-5">
             <Form className={styles.addAdminForm} noValidate onSubmit={handleSubmit}>
                 <Row className="mb-3">
                     <Form.Group className="position-relative">
@@ -187,7 +192,7 @@ function AddAdminsPage() {
                 </Row>
                 <Button
                     variant="primary"
-                    className="mb-4"
+                    className="mt-3 mb-4"
                     type="submit"
                     disabled={loading || !isValidName || !isValidEmail || !isValidPasswd || !isValidPasswdMatch}
                 >

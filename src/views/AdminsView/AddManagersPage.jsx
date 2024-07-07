@@ -51,7 +51,6 @@ function AddManagersPage() {
     }, [passwd, passwdConfirm])
 
     useEffect(() => {
-        setSuccessMessage("")
         setErrorMessage('');
     }, [name, email, passwd, passwdConfirm])
 
@@ -70,6 +69,7 @@ function AddManagersPage() {
             );
             const data = response?.data;
             setSuccessMessage(`${data.name} has been successfully registered as a new manager.`);
+            setTimeout(() => setSuccessMessage(""), 5000);
             setName('');
             setEmail("")
             setPasswd('');
@@ -87,7 +87,7 @@ function AddManagersPage() {
     };
 
     return (
-        <Container fluid className="mx-3 p-3">
+        <Container fluid className="mx-3 p-5 border rounded-4">
             <Form className={styles.addManagersPage} noValidate onSubmit={handleSubmit}>
                 <Row className="mb-3">
                     <Form.Group className="position-relative">
@@ -184,7 +184,7 @@ function AddManagersPage() {
                     </Form.Group>
                 </Row>
                 <Button
-                    variant="primary"
+                    variant={!isValidName || !isValidEmail || !isValidPasswd || !isValidPasswdMatch ? "outline-danger":"primary"}
                     className="mb-4"
                     type="submit"
                     disabled={loading || !isValidName || !isValidEmail || !isValidPasswd || !isValidPasswdMatch}

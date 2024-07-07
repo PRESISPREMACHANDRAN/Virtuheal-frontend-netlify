@@ -14,6 +14,7 @@ import useAuth from "@hooks/useAuth.jsx";
 import NotFoundPage from "@views/ErrorPages/NotFoundPage.jsx";
 import "./MainContent.scss";
 import AddManagersPage from "@views/AdminsView/AddManagersPage.jsx";
+import ManageManagersPage from "@views/AdminsView/ManageManagersPage.jsx";
 
 const MainContent = () => {
     const {auth} = useAuth();
@@ -43,6 +44,7 @@ const MainContent = () => {
                             </Route>
                             <Route path="/managers">
                                 <Route path="add" element={<AddManagersPage/>}/>
+                                <Route path="manage" element={<ManageManagersPage/>}/>
                             </Route>
                             <Route path="/reports">
                                 <Route path="add/*" element={<UploadReportsPage/>}/>

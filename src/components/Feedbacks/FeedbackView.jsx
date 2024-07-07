@@ -1,6 +1,6 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {useLocation} from 'react-router-dom';
-import {Button, Spinner, Container, Table, Tabs, Tab, Accordion, Alert, Card} from 'react-bootstrap';
+import {Button, Spinner, Container, Table, Tabs, Tab, Accordion, Alert, Card, Row, Badge} from 'react-bootstrap';
 import useAxiosPrivate from "@hooks/useAxiosPrivate.jsx";
 import {useQuery} from '@tanstack/react-query';
 import DateRangePicker from '@components/DateRangePicker';
@@ -10,10 +10,11 @@ const FeedbackView = () => {
     const {state} = useLocation();
     const associateId = state?.associateId;
     const associateName = state?.associateName;
-    console.log(associateId);
+    const [alertMessage, setAlertMessage] = useState("");
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
     const [feedbacks, setFeedbacks] = useState([]);
+    const [loading, setLoading] = useState(false);
     const axiosPrivate = useAxiosPrivate();
 
     const fetchFeedbacks = async () => {
@@ -45,23 +46,33 @@ const FeedbackView = () => {
         return allResults;
     };
 
-    const feedbackQuery = useQuery({
-        queryKey: ["feedbacks", associateId, startDate, endDate],
-        queryFn: fetchFeedbacks,
-        enabled: false
-    });
+    // const feedbackQuery = useQuery({
+    //     queryKey: ["feedbacks", associateId, startDate, endDate], queryFn: fetchFeedbacks, enabled: false
+    // });
 
     const handleFetchFeedbacks = () => {
         if (!startDate || !endDate) {
             alert('Please select a date range.');
             return;
         }
-        feedbackQuery.refetch()
-            .then(() => {
-                setFeedbacks(feedbackQuery.data);
+        setLoading(true);
+        setAlertMessage("");
+        fetchFeedbacks()
+            .then((results) => {
+                setFeedbacks(results);
             })
-            .catch((error) => console.log(error));
+            .then(() => {
+                if (!feedbacks?.length) {
+                    setAlertMessage("No feedbacks found in the given date range. Please try a different date range.")
+                }
+            })
+            .catch((error) => console.log(error))
+            .finally(() => setLoading(false));
     };
+
+    useEffect(() => {
+        setAlertMessage("");
+    }, [startDate, endDate]);
 
     const calculateAverages = () => {
         const totals = feedbacks.reduce((acc, feedback) => {
@@ -85,13 +96,14 @@ const FeedbackView = () => {
         return [...Array(5)].map((_, index) => (
             <span key={index} className={index < rating ? "text-warning" : "text-muted"}>
                 ★
-            </span>
-        ));
+            </span>));
     };
 
-    return (
-        <Container fluid className={styles.FeedBackViewContainer}>
-            <h2 className="mb-5 text-center">Feedback for Associate: <h1 className="m-2">{associateName}</h1></h2>
+    return (<Container fluid className="m-5 px-5 text-center">
+        <Container fluid className="border rounded-4 shadow-sm mx-2 py-4">
+
+            <h2 className="text-center mt-4 mb-3">Feedback for resident: </h2>
+            <h1 className="mt-3 mb-5 text-center">{associateName}</h1>
             <DateRangePicker
                 startDate={startDate}
                 endDate={endDate}
@@ -101,70 +113,93 @@ const FeedbackView = () => {
             <Button
                 onClick={handleFetchFeedbacks}
                 className="my-4 py-2 mx-5"
-                style={{width: '95%'}}
-            >Get Feedbacks
+                style={{width: '25%'}}
+            >View Feedbacks
             </Button>
-            {feedbackQuery.isFetching ?
-                (<Spinner animation="border" className="my-3"/>) : (startDate && endDate && feedbacks?.length ? (
-                    <>
-                        <Card className="my-3">
-                            <Card.Header className="display-6 text-center">Average Ratings</Card.Header>
-                            <Card.Body>
-                                <ul className="align-items-center text-center">
-                                    <li>Engagement Level: {renderStarRating(calculateAverages().engagement)}</li>
-                                    <li>Satisfaction: {renderStarRating(calculateAverages().satisfaction)}</li>
-                                    <li>Physical Impact: {renderStarRating(calculateAverages().physical)}</li>
-                                    <li>Cognitive Impact: {renderStarRating(calculateAverages().cognitive)}</li>
-                                </ul>
-                            </Card.Body>
-                        </Card>
-                        <Card className="my-3">
-                            <Card.Header className="display-6 text-center">Feedback Records</Card.Header>
-                            <Card.Body>
-                                <Tabs defaultActiveKey={feedbacks[0].session_date} id="feedback-tabs">
-                                    {feedbacks.map(feedback => (
-                                        <Tab eventKey={feedback.id} key={feedback.id} title={feedback.session_date}>
-                                            <div className="mb-5 p-2">
-                                                <h3>VR Experience: {feedback.vr_experience}</h3>
-                                                <h3 className="mb-3">Emotional
-                                                    Response: {feedback.emotional_response}</h3>
-                                                <h2>Recorded Details</h2>
-                                                <Table striped bordered hover responsive>
-                                                    <thead>
-                                                    <tr>
-                                                        <th>Engagement Level</th>
-                                                        <th>Satisfaction</th>
-                                                        <th>Physical Impact</th>
-                                                        <th>Cognitive Impact</th>
-                                                    </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                    <tr>
-                                                        <td>{feedback.engagement_level}</td>
-                                                        <td>{feedback.satisfaction}</td>
-                                                        <td>{feedback.physical_impact}</td>
-                                                        <td>{feedback.cognitive_impact}</td>
-                                                    </tr>
-                                                    </tbody>
-                                                </Table>
-                                                <Accordion>
-                                                    <Accordion.Item eventKey={feedback.id}>
-                                                        <Accordion.Header>Notes</Accordion.Header>
-                                                        <Accordion.Body>{feedback.feedback_notes}</Accordion.Body>
-                                                    </Accordion.Item>
-                                                </Accordion>
-                                            </div>
-                                        </Tab>
-                                    ))}
-                                </Tabs>
-                            </Card.Body>
-                        </Card>
-                    </>
-                ) : (startDate && endDate && !feedbacks?.length ? (
-                    <Alert variant="info" className="mt-3">No feedbacks found in the given date range!</Alert>
-                ) : null))}
         </Container>
-    );
+        {loading ? <Container> <Spinner animation="border" className="my-3"/>
+        </Container> : (startDate && endDate && feedbacks?.length && !loading ? <>
+            <Container fluid className={styles.FeedBackViewContainer}>
+                <Card className="my-3 rounded-4 shadow">
+                    <Card.Header className="display-6 text-center">Average Ratings</Card.Header>
+                    <Card.Body>
+                        <ul className="align-items-center text-center rounded-5 border">
+                            <li>Engagement Level: {renderStarRating(calculateAverages().engagement)}</li>
+                            <li>Satisfaction: {renderStarRating(calculateAverages().satisfaction)}</li>
+                            <li>Physical Impact: {renderStarRating(calculateAverages().physical)}</li>
+                            <li>Cognitive Impact: {renderStarRating(calculateAverages().cognitive)}</li>
+                        </ul>
+                    </Card.Body>
+                </Card>
+                <Card className="my-3 rounded-4 shadow">
+                    <Card.Header className="display-6 text-center">Feedback Records</Card.Header>
+                    <Card.Body>
+                        <Tabs defaultActiveKey={feedbacks[0].session_date} id="feedback-tabs" fill>
+                            {feedbacks.map(feedback => (
+                                <Tab eventKey={feedback.id} key={feedback.id}
+                                     title={feedback?.session_date.split("-").reverse().join("-")}>
+                                    <div className="mb-5 p-2">
+                                        <h1 className="mt-5 mb-3">Emotional overview</h1>
+                                        <Badge
+                                            bg="light"
+                                            className="text-dark border my-3 mx-5 rounded-5"
+                                        >
+                                            <h3 className="text-center">VR Experience: {feedback.vr_experience}</h3>
+                                        </Badge>
+                                        <br/>
+                                        <Badge
+                                            bg="light"
+                                            className="text-dark my-3 mx-5 border rounded-5"
+                                        >
+                                            <h3 className="text-center">Emotional
+                                                Response: {feedback.emotional_response}</h3>
+                                        </Badge>
+                                        <h1 className="mt-5 mb-3">Recorded Details</h1>
+                                        <Table striped bordered hover responsive
+                                               className="shadow"
+                                        >
+                                            <thead>
+                                            <tr>
+                                                <th>Engagement Level</th>
+                                                <th>Satisfaction</th>
+                                                <th>Physical Impact</th>
+                                                <th>Cognitive Impact</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>{renderStarRating(feedback.engagement_level)}</td>
+                                                <td>{renderStarRating(feedback.satisfaction)}</td>
+                                                <td>{renderStarRating(feedback.physical_impact)}</td>
+                                                <td>{renderStarRating(feedback.cognitive_impact)}</td>
+                                            </tr>
+                                            </tbody>
+                                        </Table>
+                                        <Accordion
+                                            className="shadow rounded m-4"
+                                        >
+                                            <Accordion.Item eventKey={feedback.id}>
+                                                <Accordion.Header>
+                                                    <h2>
+                                                        Additional Notes
+                                                    </h2>
+                                                </Accordion.Header>
+                                                <Accordion.Body>
+                                                    <h3 className="m-3">
+                                                        {feedback.feedback_notes}
+                                                    </h3>
+                                                </Accordion.Body>
+                                            </Accordion.Item>
+                                        </Accordion>
+                                    </div>
+                                </Tab>))}
+                        </Tabs>
+                    </Card.Body>
+                </Card>
+            </Container>
+        </> : (startDate && endDate && !feedbacks?.length ? (
+            <Alert show={alertMessage} variant="info" className="mt-3 mx-5">{alertMessage}</Alert>) : null))}
+    </Container>);
 };
 
 export default FeedbackView;

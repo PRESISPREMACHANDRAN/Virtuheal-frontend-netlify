@@ -2,7 +2,7 @@ import useAuth from "@hooks/useAuth.jsx";
 import {Container} from "react-bootstrap";
 import CareHomeManagers from "@components/CareHomeManagers.jsx";
 import useTopBar from "@hooks/useTopBar.jsx";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {axiosPrivate} from "@/api/axios.js";
 
 function DashboardPage() {
@@ -21,9 +21,8 @@ function DashboardPage() {
             console.log("Error");
         }
     }
-    if (auth?.isAdmin) {
-        getNumAssociates()
-    }
+    useEffect(() => {
+    }, []);
 
     const getNumFeedbacks = async () => {
         try {
@@ -33,9 +32,10 @@ function DashboardPage() {
             console.log("Error");
         }
     }
-    if (auth?.isAdmin) {
-        getNumFeedbacks()
-    }
+
+    useEffect(() => {
+    }, []);
+
 
     const getNumAdmins = async () => {
         try {
@@ -51,9 +51,9 @@ function DashboardPage() {
             console.log("Error");
         }
     }
-    if (auth?.isSuperAdmin) {
-        getNumAdmins()
-    }
+
+    useEffect(() => {
+    }, []);
 
     const getNumCarehomes = async () => {
         try {
@@ -63,9 +63,20 @@ function DashboardPage() {
             console.log("Error");
         }
     }
-    if (auth?.isSuperAdmin) {
-        getNumCarehomes()
-    }
+
+
+    useEffect(() => {
+        if (auth?.isAdmin) {
+            getNumFeedbacks()
+            getNumAssociates()
+        }
+
+        if (auth?.isSuperAdmin) {
+            getNumAdmins()
+            getNumCarehomes()
+        }
+    }, []);
+
     setTitle("Dashboard");
     return (
         <>
@@ -73,7 +84,7 @@ function DashboardPage() {
                 <h1 className="mt-5 mb-3 mx-4">Welcome back {auth.name}</h1>
                 {auth.isAdmin && (
                     <>
-                        <div className="insights">
+                        <div className="insights mb-4">
                             <div className="total-associates">
                                 <span className="material-symbols-rounded">person</span>
                                 <div className="middle">

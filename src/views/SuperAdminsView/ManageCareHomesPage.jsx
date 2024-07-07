@@ -7,7 +7,6 @@ import {
     Container,
     Spinner,
     ListGroup,
-    Alert,
     Toast,
     ToastContainer,
     ButtonGroup
@@ -31,7 +30,9 @@ function ManageCareHomesPage() {
     const [showConfirmRemoveModal, setShowConfirmRemoveModal] = useState(false);
     let allAdmins = [];
     const [error, setError] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
     const {setTitle} = useTopBar()
+    const [isLoading, setIsLoading] = useState(false);
     setTitle("Manage Care Home Details");
 
     useEffect(() => {
@@ -48,7 +49,7 @@ function ManageCareHomesPage() {
                 }
             });
         } catch (error) {
-            console.error("Error:", error);
+            setError("An error occurred while getting some Care Home details. Please try again later.");
         }
     };
 
@@ -57,6 +58,7 @@ function ManageCareHomesPage() {
         accumulatedResults = []
     ) => {
         try {
+            setIsLoading(true);
             const response = await axiosPrivate.get(url);
             const results = accumulatedResults.concat(response?.data?.results);
             if (response?.data?.next) {
@@ -64,7 +66,9 @@ function ManageCareHomesPage() {
             }
             return results.flat();
         } catch (error) {
-            console.error("Error:", error);
+            setError("An error occured while getting Care Home details. Please try again later.");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -80,21 +84,23 @@ function ManageCareHomesPage() {
         }
     };
 
-    const fetchAllAdmins = async (url = `/auth/users/`) => {
+    const fetchAllAdmins = async () => {
         setLoadingAdmins(true);
         setAdmins([]);
         try {
-            const response = await axiosPrivate.get(url);
-            const filteredAdmins = response?.data?.results.filter(
-                (admin) => admin.is_admin
-            );
+            const response = await axiosPrivate.get("/auth/users/", {
+                params: {
+                    type: "admin"
+                }
+            });
+            const filteredAdmins = response?.data?.results;
             allAdmins = [...allAdmins, ...filteredAdmins];
             setAdmins(allAdmins);
             if (response?.data?.next) {
-                fetchAllAdmins(response?.data?.next);
+                await fetchAllAdmins(response?.data?.next);
             }
         } catch (error) {
-            console.error("Error:", error);
+            setError("An error occurred while getting admin details. Please try again later.");
         } finally {
             setLoadingAdmins(false);
             console.log(admins)
@@ -126,21 +132,19 @@ function ManageCareHomesPage() {
 
     const handleDelete = async (careHomeUrl) => {
         try {
-            await axiosPrivate.delete(careHomeUrl);
+            await axiosPrivate.delete(careHomeUrl).then(() => setSuccessMessage("Successfully deleted Care Home."))
             setCareHomeElements((prevElements) =>
                 prevElements.filter((elm) => elm.url !== careHomeUrl)
             );
-            getCareHomes();
+            await getCareHomes();
         } catch (error) {
-            if (error.response.status === 500) {
-                setError("Cannot remove Care Home. Care Home already has residents.");
-            }
-            console.error("Error:", error);
+            setError("Cannot remove Care Home. Care Home either has an Admin assigned or already has residents.");
         }
     };
 
     const handleEditSubmit = async (event) => {
         event.preventDefault();
+        setError("");
         const updatedCareHome = {
             name: event.target.name.value,
             address: event.target.address.value,
@@ -150,7 +154,7 @@ function ManageCareHomesPage() {
             await axiosPrivate.put(
                 selectedCareHome.url,
                 JSON.stringify(updatedCareHome)
-            );
+            ).then(() => setSuccessMessage("Successfully updated Care Home details."))
             setCareHomeElements((prevElements) =>
                 prevElements.map((elm) =>
                     elm.url === selectedCareHome.url
@@ -164,12 +168,13 @@ function ManageCareHomesPage() {
             );
             handleCloseEditModal();
         } catch (error) {
-            console.error("Error:", error);
+            setError("Failed to update Care Home details. Please try again later.");
         }
     };
 
     const assignAdmin = async (careHomeUrl, admin) => {
         setAssigningAdmin(true);
+        setError("");
         try {
             const careHome = await axiosPrivate.get(careHomeUrl);
             await axiosPrivate.put(
@@ -180,10 +185,10 @@ function ManageCareHomesPage() {
                     admin,
                 })
             );
-            getCareHomes();
+            await getCareHomes();
             handleCloseAssignModal();
         } catch (error) {
-            console.error("Error:", error);
+            setError("Failed to assign admin. Please try again later.");
         } finally {
             setAssigningAdmin(false);
         }
@@ -205,236 +210,274 @@ function ManageCareHomesPage() {
                     admin: null,
                 })
             );
-            getCareHomes();
+            await getCareHomes();
             toggleConfirmRemoveModal();
         } catch (error) {
             console.error("Error:", error);
         }
     };
 
-    return (
-        <Container fluid className="mx-5">
-            <Table responsive hover>
-                <thead>
-                <tr>
-                    <th className={styles.fixedWidthColumn}>Name</th>
-                    <th className={styles.fixedWidthColumn}>Code</th>
-                    <th className={styles.fixedWidthColumn}>Address</th>
-                    <th className={styles.fixedWidthColumn}>Admin</th>
-                    <th className={styles.fixedWidthColumn}>Action</th>
-                </tr>
-                </thead>
-                <tbody>
-                {careHomeElements.map((result) => (
-                    <tr key={result.url}>
-                        <td className={styles.fixedWidthColumn}>{result.name}</td>
-                        <td className={styles.fixedWidthColumn}>{result.code}</td>
-                        <td className={styles.fixedWidthColumn}>{result.address}</td>
-                        <td>
-                            {result.admin ? (
-                                <ButtonGroup>
-                                    <Button variant="outline-light" className="px-3 text-black shadow">{adminNames[result.admin]}</Button>
+    return <>
+        {
+            isLoading ?
+                (<Container fluid className="text-center m-5 p-5">
+                    <Spinner animation="border" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </Spinner>
+                    <h2 className="m-3">Loading...</h2>
+                </Container>)
+                :
+                <Container fluid className="m-3 p-4 border rounded-4">
+                    <Table responsive hover
+                    className="shadow"
+                    >
+                        <thead>
+                        <tr>
+                            <th className={styles.fixedWidthColumn}>Name</th>
+                            <th className={styles.fixedWidthColumn}>Code</th>
+                            <th className={styles.fixedWidthColumn}>Address</th>
+                            <th className={styles.fixedWidthColumn}>Admin</th>
+                            <th className={styles.fixedWidthColumn}>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody
+                        className="rounded-4 border"
+                        >
+                        {careHomeElements.map((result) => (
+                            <tr key={result.url}>
+                                <td className={styles.fixedWidthColumn}>{result.name}</td>
+                                <td className={styles.fixedWidthColumn}>{result.code}</td>
+                                <td className={styles.fixedWidthColumn}>{result.address}</td>
+                                <td>
+                                    {result.admin ?
+                                        (loadingAdmins ?
+                                                <Spinner animation="border" role="status">
+                                                    <span className="visually-hidden">Loading...</span>
+                                                </Spinner>
+                                                :
+                                                <ButtonGroup>
+                                                    <Button variant="outline-light"
+                                                            className="px-3 text-black shadow">{adminNames[result.admin]}</Button>
+                                                    <Button
+                                                        variant="danger"
+                                                        className="shadow"
+                                                        onClick={() => {
+                                                            setSelectedCareHomeUrl(result.url);
+                                                            toggleConfirmRemoveModal();
+                                                        }}
+                                                    >
+                                                        <span className="material-symbols-rounded">delete</span>
+                                                    </Button>
+                                                </ButtonGroup>
+                                        ) : (
+                                            <Button
+                                                onClick={() => handleShowAssignModal(result.url)}
+                                            >
+                                                Assign Admin
+                                            </Button>
+                                        )}
+                                </td>
+                                <td className={styles.fixedWidthColumn}>
                                     <Button
-                                        variant="danger"
-                                        className="shadow"
-                                        onClick={() => {
-                                            setSelectedCareHomeUrl(result.url);
-                                            toggleConfirmRemoveModal();
-                                        }}
+                                        className="shadow p-2"
+                                        variant="success"
+                                        onClick={() => handleShowEditModal(result)}
                                     >
-                                        <span className="material-symbols-rounded">delete</span>
+                                        Edit
                                     </Button>
-                                </ButtonGroup>
+                                    <Button
+                                        className="shadow mx-3 p-2"
+                                        variant="danger"
+                                        onClick={() => handleDelete(result.url)}
+                                    >
+                                        Delete
+                                    </Button>
+                                </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </Table>
+
+                    <Modal show={showAssignModal} onHide={handleCloseAssignModal} centered>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Select an Admin</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            {loadingAdmins ? (
+                                <div className="text-center">
+                                    <Spinner animation="border" role="status">
+                                        <span className="visually-hidden">Loading...</span>
+                                    </Spinner>
+                                </div>
+                            ) : admins.length ? (
+                                <ListGroup>
+                                    {admins.map((admin) => (
+                                        <ListGroup.Item
+                                            key={admin.id}
+                                            className="d-flex justify-content-between align-items-center"
+                                        >
+                                            <h3>{admin.name}</h3>
+                                            <Button
+                                                variant="primary"
+                                                onClick={() => handleSelectAdmin(admin)}
+                                            >
+                                                Select
+                                            </Button>
+                                        </ListGroup.Item>
+                                    ))}
+                                </ListGroup>
                             ) : (
+                                <p>No admins available</p>
+                            )}
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={handleCloseAssignModal}>
+                                Close
+                            </Button>
+                            {selectedAdmin && (
                                 <Button
-                                    onClick={() => handleShowAssignModal(result.url)}
+                                    variant="primary"
+                                    onClick={() =>
+                                        assignAdmin(selectedCareHomeUrl, selectedAdmin.url)
+                                    }
+                                    disabled={assigningAdmin}
                                 >
-                                    Assign Admin
+                                    {assigningAdmin ? (
+                                        <>
+                                            <Spinner
+                                                as="span"
+                                                animation="border"
+                                                size="sm"
+                                                role="status"
+                                                aria-hidden="true"
+                                                className="mx-2"
+                                            />{" "}
+                                            Assigning...
+                                        </>
+                                    ) : (
+                                        "Assign"
+                                    )}
                                 </Button>
                             )}
-                        </td>
-                        <td className={styles.fixedWidthColumn}>
-                            <Button
-                                className="shadow p-2"
-                                variant="success"
-                                onClick={() => handleShowEditModal(result)}
-                            >
-                                Edit
-                            </Button>
-                            <Button
-                                className="shadow mx-3 p-2"
-                                variant="danger"
-                                onClick={() => handleDelete(result.url)}
-                            >
-                                Delete
-                            </Button>
-                        </td>
-                    </tr>
-                ))}
-                </tbody>
-            </Table>
+                        </Modal.Footer>
+                    </Modal>
 
-            <Modal show={showAssignModal} onHide={handleCloseAssignModal} centered>
-                <Modal.Header closeButton>
-                    <Modal.Title>Select an Admin</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    {loadingAdmins ? (
-                        <div className="text-center">
-                            <Spinner animation="border" role="status">
-                                <span className="visually-hidden">Loading...</span>
-                            </Spinner>
-                        </div>
-                    ) : admins.length ? (
-                        <ListGroup>
-                            {admins.map((admin) => (
-                                <ListGroup.Item
-                                    key={admin.id}
-                                    className="d-flex justify-content-between align-items-center"
-                                >
-                                    <h3>{admin.name}</h3>
-                                    <Button
-                                        variant="primary"
-                                        onClick={() => handleSelectAdmin(admin)}
-                                    >
-                                        Select
+                    <Modal show={showEditModal} onHide={handleCloseEditModal} centered>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Edit Care Home</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            {selectedCareHome ? (
+                                <Form onSubmit={handleEditSubmit}>
+                                    <Form.Group controlId="name">
+                                        <Form.Label>Name</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            defaultValue={selectedCareHome.name}
+                                            required
+                                        />
+                                    </Form.Group>
+                                    <Form.Group controlId="code">
+                                        <Form.Label>Code</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            defaultValue={selectedCareHome.code}
+                                            disabled
+                                            readOnly
+                                        />
+                                    </Form.Group>
+                                    <Form.Group controlId="address">
+                                        <Form.Label>Address</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            defaultValue={selectedCareHome.address}
+                                            required
+                                        />
+                                    </Form.Group>
+                                    <Button variant="primary" type="submit">
+                                        Save changes
                                     </Button>
-                                </ListGroup.Item>
-                            ))}
-                        </ListGroup>
-                    ) : (
-                        <p>No admins available</p>
-                    )}
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCloseAssignModal}>
-                        Close
-                    </Button>
-                    {selectedAdmin && (
-                        <Button
-                            variant="primary"
-                            onClick={() =>
-                                assignAdmin(selectedCareHomeUrl, selectedAdmin.url)
-                            }
-                            disabled={assigningAdmin}
-                        >
-                            {assigningAdmin ? (
-                                <>
-                                    <Spinner
-                                        as="span"
-                                        animation="border"
-                                        size="sm"
-                                        role="status"
-                                        aria-hidden="true"
-                                        className="mx-2"
-                                    />{" "}
-                                    Assigning...
-                                </>
+                                </Form>
                             ) : (
-                                "Assign"
+                                <div className="text-center">
+                                    <Spinner animation="border" role="status">
+                                        <span className="visually-hidden">Loading...</span>
+                                    </Spinner>
+                                </div>
                             )}
-                        </Button>
-                    )}
-                </Modal.Footer>
-            </Modal>
-
-            <Modal show={showEditModal} onHide={handleCloseEditModal} centered>
-                <Modal.Header closeButton>
-                    <Modal.Title>Edit Care Home</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    {selectedCareHome ? (
-                        <Form onSubmit={handleEditSubmit}>
-                            <Form.Group controlId="name">
-                                <Form.Label>Name</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    defaultValue={selectedCareHome.name}
-                                    required
-                                />
-                            </Form.Group>
-                            <Form.Group controlId="code">
-                                <Form.Label>Code</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    defaultValue={selectedCareHome.code}
-                                    disabled
-                                    readOnly
-                                />
-                            </Form.Group>
-                            <Form.Group controlId="address">
-                                <Form.Label>Address</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    defaultValue={selectedCareHome.address}
-                                    required
-                                />
-                            </Form.Group>
-                            <Button variant="primary" type="submit">
-                                Save changes
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={handleCloseEditModal}>
+                                Close
                             </Button>
-                        </Form>
-                    ) : (
-                        <div className="text-center">
-                            <Spinner animation="border" role="status">
-                                <span className="visually-hidden">Loading...</span>
-                            </Spinner>
-                        </div>
-                    )}
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCloseEditModal}>
-                        Close
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+                        </Modal.Footer>
+                    </Modal>
 
-            <Modal
-                show={showConfirmRemoveModal}
-                onHide={toggleConfirmRemoveModal}
-                centered
-            >
-                <Modal.Header closeButton>
-                    <Modal.Title>Warning</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    Are you sure you want to remove the assigned admin from this care
-                    home?
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={toggleConfirmRemoveModal}>
-                        Cancel
-                    </Button>
-                    <Button variant="danger" onClick={handleremove}>
-                        Confirm Removal
-                    </Button>
-                </Modal.Footer>
-            </Modal>
-            <ToastContainer
-                className="p-3"
-                position="bottom-end"
-                style={{zIndex: 1}}
-            >
-                <Toast
-                    show={error}
-                    bg="danger"
-                    className="shadow"
-                    onClose={() => setError("")}
-                >
-                    <Toast.Header>
-                        <h1 className="me-auto">Error!</h1>
-                    </Toast.Header>
-                    <Toast.Body
-                        className="text-light p-3"
+                    <Modal
+                        show={showConfirmRemoveModal}
+                        onHide={toggleConfirmRemoveModal}
+                        centered
                     >
-                        <h2>
-                            {error}
-                        </h2>
-                    </Toast.Body>
-                </Toast>
-            </ToastContainer>
-        </Container>
-    );
+                        <Modal.Header closeButton>
+                            <Modal.Title>Warning</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            Are you sure you want to remove the assigned admin from this care
+                            home?
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={toggleConfirmRemoveModal}>
+                                Cancel
+                            </Button>
+                            <Button variant="danger" onClick={handleremove}>
+                                Confirm Removal
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+                    <ToastContainer
+                        className="p-3"
+                        position="bottom-end"
+                        style={{zIndex: 1}}
+                    >
+                        <Toast
+                            show={error}
+                            bg="danger"
+                            className="shadow"
+                            onClose={() => setError("")}
+                        >
+                            <Toast.Header>
+                                <h1 className="me-auto">Error!</h1>
+                            </Toast.Header>
+                            <Toast.Body
+                                className="text-light p-3"
+                            >
+                                <h2>
+                                    {error}
+                                </h2>
+                            </Toast.Body>
+                        </Toast>
+
+                        <Toast
+                            show={successMessage}
+                            bg="primary"
+                            className="shadow"
+                            onClose={() => setSuccessMessage("")}
+                        >
+                            <Toast.Header>
+                                <h1 className="me-auto">Success!</h1>
+                            </Toast.Header>
+                            <Toast.Body
+                                className="text-light p-3"
+                            >
+                                <h2>
+                                    {successMessage}
+                                </h2>
+                            </Toast.Body>
+                        </Toast>
+                    </ToastContainer>
+                </Container>
+        }
+    </>
 }
 
 export default ManageCareHomesPage;

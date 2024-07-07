@@ -88,7 +88,7 @@ function UploadReportPage() {
     }, [selectedDate, selectedFile, note]);
 
     return (
-        <div className="upload-report-page">
+        <div className="container-fluid upload-report-page rounded-4 m-3 border">
             <h1>Upload Report for {name}</h1>
             <div>
                 <Calendar selectedDate={selectedDate} setSelectedDate={setSelectedDate}/>

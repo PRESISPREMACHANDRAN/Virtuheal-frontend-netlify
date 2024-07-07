@@ -62,23 +62,27 @@ const AccessReportsView = () => {
     };
 
     return (
-        <Container fluid className="mx-3 p-3">
-            <h1 className="mx-3 mt-2 mb-5">Reports for {associateName}</h1>
-            <DateRangePicker
-                startDate={startDate}
-                endDate={endDate}
-                setStartDate={setStartDate}
-                setEndDate={setEndDate}
-            />
-            <Button
-                onClick={handleFetchReports}
-                className="my-4 py-2 mx-5"
-                style={{width: '95%'}}
-            >Get Reports
-            </Button>
+        <Container fluid className="my-5 mx-3 px-5 text-center">
+            <Container fluid className="border rounded-4 shadow-sm mx-2 py-4 mb-5">
+                <h1 className="mt-2 mb-5">Reports for {associateName}</h1>
+                <DateRangePicker
+                    startDate={startDate}
+                    endDate={endDate}
+                    setStartDate={setStartDate}
+                    setEndDate={setEndDate}
+                />
+                <Button
+                    onClick={handleFetchReports}
+                    className="my-4 py-2 mx-5"
+                    style={{width: '95%'}}
+                >Get Reports
+                </Button>
+            </Container>
             {reportQuery.isLoading && <Spinner animation="border"/>}
             {reportQuery.isSuccess && (
-                <Card>
+                <Card
+                    className="my-4 mx-2 rounded-4 shadow-sm"
+                >
                     <Card.Header className="text-center">
                         <h1 className="my-2">Report Records</h1>
                     </Card.Header>
@@ -87,12 +91,18 @@ const AccessReportsView = () => {
                             <Tabs defaultActiveKey={0} id="report-tabs">
                                 {reportQuery?.data?.map((reportItem) => (
                                     <Tab eventKey={reportItem.id} key={reportItem.id}
-                                         title={reportItem.report_month || "No Date"}>
-                                        <div className="mb-5 p-2">
-                                            <h3>Recorded Details</h3>
-                                            <Accordion>
+                                         title={reportItem?.report_month.split("-").reverse().join("-") || "No Date"}>
+                                        <div className="mb-5 p-2 border shadow-sm rounded-3">
+                                            <h2 className="mt-3 mb-4">Recorded Details</h2>
+                                            <Accordion
+                                                className="shadow-sm rounded m-4"
+                                            >
                                                 <Accordion.Item eventKey={reportItem.id}>
-                                                    <Accordion.Header>Report</Accordion.Header>
+                                                    <Accordion.Header>
+                                                        <h2>
+                                                            Report
+                                                        </h2>
+                                                    </Accordion.Header>
                                                     <Accordion.Body>
                                                         <Button onClick={() => window.open(reportItem.pdf, '_blank')}>
                                                             View Report

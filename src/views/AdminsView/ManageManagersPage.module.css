@@ -1,0 +1,24 @@
+.fixedWidthColumn {
+    width: 1rem; 
+    text-align: left; 
+}
+
+.carehomeItem {
+    margin-bottom: 0.02rem;
+}
+.fixButton{
+    margin: 0.5rem;
+}
+.adminName{
+    width: 5rem;
+}
+
+th {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+td {
+    font-size: 1rem;
+    font-weight: 500;
+}
