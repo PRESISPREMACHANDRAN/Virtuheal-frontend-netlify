@@ -148,7 +148,7 @@ function LoginPage() {
                                                 {errorMessage}
                                             </Alert>
                                         )}
-                                        <div className="d-flex gap-2 justify-content-between">
+                                        <div className="d-flex gap-2 justify-content-center">
                                             <Form.Check
                                                 type="checkbox"
                                                 id="rememberMe"
@@ -157,9 +157,6 @@ function LoginPage() {
                                                 onChange={handleCheckboxChange}
                                                 className="text-secondary"
                                             />
-                                            <a href="/" className="link-primary text-decoration-none">
-                                                Forgot password?
-                                            </a>
                                         </div>
                                     </Col>
                                     <Col xs={12}>
@@ -168,17 +165,18 @@ function LoginPage() {
                                                 type="submit"
                                                 disabled={loading}
                                                 variant="primary"
-                                                size="lg"
                                             >
-                                                {loading ? (
+                                                {loading ? <>
                                                     <Spinner
                                                         as="span"
                                                         animation="border"
                                                         size="sm"
                                                         role="status"
                                                         aria-hidden="true"
+                                                        className="mx-3"
                                                     />
-                                                ) : (
+                                                    Logging in...
+                                                </> : (
                                                     "Log in"
                                                 )}
                                             </Button>

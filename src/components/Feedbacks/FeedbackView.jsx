@@ -1,8 +1,7 @@
 import {useEffect, useState} from 'react';
 import {useLocation} from 'react-router-dom';
-import {Button, Spinner, Container, Table, Tabs, Tab, Accordion, Alert, Card, Row, Badge} from 'react-bootstrap';
+import {Button, Spinner, Container, Table, Tabs, Tab, Accordion, Alert, Card, Badge} from 'react-bootstrap';
 import useAxiosPrivate from "@hooks/useAxiosPrivate.jsx";
-import {useQuery} from '@tanstack/react-query';
 import DateRangePicker from '@components/DateRangePicker';
 import styles from './FeedbackView.module.scss';
 
@@ -10,7 +9,7 @@ const FeedbackView = () => {
     const {state} = useLocation();
     const associateId = state?.associateId;
     const associateName = state?.associateName;
-    const [alertMessage, setAlertMessage] = useState("");
+    const [alertMessage, setAlertMessage] = useState("hello");
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
     const [feedbacks, setFeedbacks] = useState([]);
@@ -45,10 +44,6 @@ const FeedbackView = () => {
         }
         return allResults;
     };
-
-    // const feedbackQuery = useQuery({
-    //     queryKey: ["feedbacks", associateId, startDate, endDate], queryFn: fetchFeedbacks, enabled: false
-    // });
 
     const handleFetchFeedbacks = () => {
         if (!startDate || !endDate) {
@@ -99,8 +94,8 @@ const FeedbackView = () => {
             </span>));
     };
 
-    return (<Container fluid className="m-5 px-5 text-center">
-        <Container fluid className="border rounded-4 shadow-sm mx-2 py-4">
+    return (<Container fluid className="m-3 rounded-4 border px-5 text-center">
+        <Container fluid className="border rounded-4 shadow-sm my-5 mx-3 py-4">
 
             <h2 className="text-center mt-4 mb-3">Feedback for resident: </h2>
             <h1 className="mt-3 mb-5 text-center">{associateName}</h1>
@@ -120,7 +115,7 @@ const FeedbackView = () => {
         {loading ? <Container> <Spinner animation="border" className="my-3"/>
         </Container> : (startDate && endDate && feedbacks?.length && !loading ? <>
             <Container fluid className={styles.FeedBackViewContainer}>
-                <Card className="my-3 rounded-4 shadow">
+                <Card className="my-3 rounded-4 shadow-sm">
                     <Card.Header className="display-6 text-center">Average Ratings</Card.Header>
                     <Card.Body>
                         <ul className="align-items-center text-center rounded-5 border">
@@ -131,7 +126,7 @@ const FeedbackView = () => {
                         </ul>
                     </Card.Body>
                 </Card>
-                <Card className="my-3 rounded-4 shadow">
+                <Card className="my-3 rounded-4 shadow-sm">
                     <Card.Header className="display-6 text-center">Feedback Records</Card.Header>
                     <Card.Body>
                         <Tabs defaultActiveKey={feedbacks[0].session_date} id="feedback-tabs" fill>
@@ -156,7 +151,7 @@ const FeedbackView = () => {
                                         </Badge>
                                         <h1 className="mt-5 mb-3">Recorded Details</h1>
                                         <Table striped bordered hover responsive
-                                               className="shadow"
+                                               className="shadow-sm"
                                         >
                                             <thead>
                                             <tr>
@@ -176,7 +171,7 @@ const FeedbackView = () => {
                                             </tbody>
                                         </Table>
                                         <Accordion
-                                            className="shadow rounded m-4"
+                                            className="shadow-sm rounded m-4"
                                         >
                                             <Accordion.Item eventKey={feedback.id}>
                                                 <Accordion.Header>
@@ -198,7 +193,7 @@ const FeedbackView = () => {
                 </Card>
             </Container>
         </> : (startDate && endDate && !feedbacks?.length ? (
-            <Alert show={alertMessage} variant="info" className="mt-3 mx-5">{alertMessage}</Alert>) : null))}
+            <Alert show={alertMessage} variant="info" className="mt-3 mx-5"><h3>{alertMessage}</h3></Alert>) : null))}
     </Container>);
 };
 

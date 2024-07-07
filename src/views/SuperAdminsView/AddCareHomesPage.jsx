@@ -77,10 +77,19 @@ function AddCareHomesPage() {
             setState("");
             setZipCode("");
             setSuccessMessage(`Care Home details have been successfully added. The ID is ${response?.data?.code}`);
-            setTimeout(()=>setSuccessMessage(""), 5000);
+            setTimeout(() => setSuccessMessage(""), 5000);
         } catch (error) {
-            console.error("Error:", error);
-            setErrorMessage("An error occurred while adding carehome");
+            if (!error?.response) {
+                setErrorMessage("No server response. Are you connected to the internet?");
+            } else if (error.response?.status === 400) {
+                if (error.response?.data[0] === "A care home with the same name and address already exists.") {
+                    setErrorMessage("A Care Home with the given details already exists. Try again with different Care Home details.");
+                } else {
+                    setErrorMessage("A Care Home with the given details cannot be added. Try again with different Care Home details.");
+                }
+            } else {
+                setErrorMessage("An error occurred while adding Care Home. Please try again later.");
+            }
         } finally {
             setLoading(false);
         }
@@ -211,8 +220,9 @@ function AddCareHomesPage() {
                                 size="sm"
                                 role="status"
                                 aria-hidden="true"
+                                className="mx-3"
                             />
-                            <span className="sr-only">Loading...</span>
+                            <span className="sr-only">Adding details...</span>
                         </>
                     ) : ("Submit")}
                 </Button>

@@ -67,7 +67,7 @@ const UploadFile = ({onFileChange, reset}) => {
                 </div>
             )}
             <Badge>
-                <small className="form-hint px-3 mx-5">Only PDF format is allowed.</small>
+                <small className="py-5 mx-3">Only PDF format is allowed.</small>
             </Badge>
         </div>
     );

@@ -101,7 +101,7 @@ function ManageAdminsPage() {
     return (
         <>
             {loading ?
-                (<Container fluid className="text-center m-5 p-5">
+                (<Container fluid className="text-center m-3 p-5 rounded-4 border">
                     <Spinner animation="border" role="status">
                         <span className="visually-hidden">Loading...</span>
                     </Spinner>

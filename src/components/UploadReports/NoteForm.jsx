@@ -39,7 +39,8 @@ function NoteForm({note, onNoteChange}) {
                         maxLength={maxChars}
                     />
                 </Form.Group>
-                <Badge bg={"dark"}>
+                <Badge
+                    className="py-2 border rounded-4 text-dark shadow-sm" bg={"light"}>
                     {note?.length}/{maxChars} characters
                 </Badge>
             </Form>

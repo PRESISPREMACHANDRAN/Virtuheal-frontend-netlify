@@ -25,6 +25,7 @@ function ManageCareHomesPage() {
     const [selectedAdmin, setSelectedAdmin] = useState(null);
     const [selectedCareHome, setSelectedCareHome] = useState(null);
     const [loadingAdmins, setLoadingAdmins] = useState(false);
+    const [loadingAssignableAdmins, setLoadingAssignableAdmins] = useState(false);
     const [assigningAdmin, setAssigningAdmin] = useState(false);
     const axiosPrivate = useAxiosPrivate();
     const [showConfirmRemoveModal, setShowConfirmRemoveModal] = useState(false);
@@ -85,7 +86,7 @@ function ManageCareHomesPage() {
     };
 
     const fetchAllAdmins = async () => {
-        setLoadingAdmins(true);
+
         setAdmins([]);
         try {
             const response = await axiosPrivate.get("/auth/users/", {
@@ -101,15 +102,13 @@ function ManageCareHomesPage() {
             }
         } catch (error) {
             setError("An error occurred while getting admin details. Please try again later.");
-        } finally {
-            setLoadingAdmins(false);
-            console.log(admins)
         }
     };
 
     const handleShowAssignModal = (careHomeUrl) => {
         setSelectedCareHomeUrl(careHomeUrl);
-        fetchAllAdmins();
+        setLoadingAssignableAdmins(true);
+        fetchAllAdmins().finally(()=>setLoadingAssignableAdmins(false));
         setShowAssignModal(true);
     };
 
@@ -138,7 +137,7 @@ function ManageCareHomesPage() {
             );
             await getCareHomes();
         } catch (error) {
-            setError("Cannot remove Care Home. Care Home either has an Admin assigned or already has residents.");
+            setError("Cannot remove Care Home. Care Home either has a manager assigned or already has residents.");
         }
     };
 
@@ -198,7 +197,7 @@ function ManageCareHomesPage() {
         setShowConfirmRemoveModal(!showConfirmRemoveModal);
     };
 
-    const handleremove = async () => {
+    const handleRemove = async () => {
         if (!selectedCareHomeUrl) return;
         try {
             const careHome = await axiosPrivate.get(selectedCareHomeUrl);
@@ -220,7 +219,7 @@ function ManageCareHomesPage() {
     return <>
         {
             isLoading ?
-                (<Container fluid className="text-center m-5 p-5">
+                (<Container fluid className="text-center m-3 p-5 border rounded-4">
                     <Spinner animation="border" role="status">
                         <span className="visually-hidden">Loading...</span>
                     </Spinner>
@@ -303,7 +302,7 @@ function ManageCareHomesPage() {
                             <Modal.Title>Select an Admin</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
-                            {loadingAdmins ? (
+                            {loadingAssignableAdmins ? (
                                 <div className="text-center">
                                     <Spinner animation="border" role="status">
                                         <span className="visually-hidden">Loading...</span>
@@ -429,7 +428,7 @@ function ManageCareHomesPage() {
                             <Button variant="secondary" onClick={toggleConfirmRemoveModal}>
                                 Cancel
                             </Button>
-                            <Button variant="danger" onClick={handleremove}>
+                            <Button variant="danger" onClick={handleRemove}>
                                 Confirm Removal
                             </Button>
                         </Modal.Footer>

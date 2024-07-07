@@ -104,14 +104,14 @@ function ManageManagersPage() {
 
     return <>
         {loading ?
-            (<Container fluid className="text-center m-5 p-5">
+            (<Container fluid className="text-center rounded-4 border m-3 p-5">
                 <Spinner animation="border" role="status">
                     <span className="visually-hidden">Loading...</span>
                 </Spinner>
                 <h2 className="m-3">Loading...</h2>
             </Container>)
             :
-            <Container fluid className="mx-5">
+            <Container fluid className="m-3 border rounded-4 p-4">
                 <Table responsive hover className={styles.carehomeItem}>
                     <thead className="p-3">
                     <tr>

@@ -100,7 +100,7 @@ function UploadReportPage() {
                 <NoteForm note={note} onNoteChange={handleNoteChange}/>
             </div>
             <div>
-                <SubmitButton onSubmit={handleSubmit} isSubmitting={isSubmitting}/>
+                <SubmitButton onSubmit={handleSubmit} isSubmitting={isSubmitting} hasValidDate={selectedDate} hasValidFile={selectedFile}/>
             </div>
             <ToastContainer
                 className="p-3"
