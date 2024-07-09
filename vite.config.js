@@ -17,10 +17,4 @@ export default defineConfig({
       '@constants': path.resolve(__dirname, 'src/utils/constants'),
     },
   },
-  build: {
-    outDir: 'dist',
-  },
-  server: {
-    port: 3000,
-  },
 })

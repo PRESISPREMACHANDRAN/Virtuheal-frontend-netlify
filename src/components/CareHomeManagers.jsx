@@ -113,7 +113,7 @@ const CareHomeManagers = () => {
                     <span className="visually-hidden">Loading...</span>
                 </Spinner>
                 <h2>Please wait</h2><h3>Loading Care Homes...</h3>
-            </div>) : (<Row>
+            </div>) : carehomes.length ? <Row>
                 {carehomes.map(carehome => (<Col md={6} lg={4} key={carehome.id} className="mb-4">
                     <Card className="shadow-sm rounded-3">
                         <Card.Header className="bg-primary text-white">
@@ -178,7 +178,12 @@ const CareHomeManagers = () => {
                         </Card.Footer>
                     </Card>
                 </Col>))}
-            </Row>)}
+            </Row> : <Alert variant="info" className="rounded-4 border shadow-sm p-3">
+                <h3 className="text-center">Looks like there are no homes assigned. <span
+                    className="material-symbols-rounded align-text-top">domain_disabled</span></h3>
+
+            </Alert>
+            }
 
             <Modal show={showModal} onHide={handleHideModal} centered>
                 <Modal.Header closeButton>

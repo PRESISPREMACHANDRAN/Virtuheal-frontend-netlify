@@ -4,6 +4,7 @@ import axios from 'axios';
 // const BASE_URL = 'http://localhost:8000/api';
 const BASE_URL = 'https://web-production-d5b0.up.railway.app/api';
 
+
 export default axios.create({
     baseURL: BASE_URL,
 });
