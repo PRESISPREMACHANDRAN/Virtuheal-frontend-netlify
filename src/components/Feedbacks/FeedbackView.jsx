@@ -9,7 +9,7 @@ const FeedbackView = () => {
     const {state} = useLocation();
     const associateId = state?.associateId;
     const associateName = state?.associateName;
-    const [alertMessage, setAlertMessage] = useState("hello");
+    const [alertMessage, setAlertMessage] = useState("");
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
     const [feedbacks, setFeedbacks] = useState([]);
@@ -19,6 +19,9 @@ const FeedbackView = () => {
     const fetchFeedbacks = async () => {
         let allResults = [];
         let nextUrl = "/feedbacks/";
+        console.log(startDate.toISOString(), endDate.toISOString());
+        console.log(startDate.toISOString().split('T')[0],
+            endDate.toISOString().split('T')[0],);
         try {
             const {data} = await axiosPrivate.get(nextUrl, {
                 params: {
@@ -193,7 +196,12 @@ const FeedbackView = () => {
                 </Card>
             </Container>
         </> : (startDate && endDate && !feedbacks?.length ? (
-            <Alert show={alertMessage} variant="info" className="mt-3 mx-5"><h3>{alertMessage}</h3></Alert>) : null))}
+            <Alert show={alertMessage} variant="info" className="mt-3 mx-5">
+                <Container style={{width:"20vw"}}>
+                    <span className="material-symbols-rounded">feedback</span>
+                </Container>
+                <h3>{alertMessage}</h3>
+            </Alert>) : null))}
     </Container>);
 };
 

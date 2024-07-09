@@ -77,9 +77,13 @@ function AddManagersPage() {
         } catch (error) {
             if (!error?.response) {
                 setErrorMessage('No Server Response. Are you connected to internet?');
+            } else if (error?.response?.status === 400) {
+                console.log(error.response);
+                if (error.response?.data?.email[0] === "interface user with this email already exists.") {
+                    setErrorMessage("A manager account with this email already exists. Try adding with another email.")
+                }
             } else {
-                console.error('Error:', error);
-                setErrorMessage('An error occurred while adding admin');
+                setErrorMessage('An error occurred while adding manager.');
             }
         } finally {
             setLoading(false);

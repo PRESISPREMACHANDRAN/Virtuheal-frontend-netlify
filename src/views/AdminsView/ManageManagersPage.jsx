@@ -1,8 +1,9 @@
 import {useState, useEffect} from "react";
-import {Button, Modal, Form, Table, Container, Spinner, Toast, ToastContainer} from "react-bootstrap";
+import {Button, Modal, Form, Table, Container, Spinner, Toast, ToastContainer, InputGroup} from "react-bootstrap";
 import styles from "./ManageManagersPage.module.css";
 import useAxiosPrivate from "@hooks/useAxiosPrivate";
 import useTopBar from "@hooks/useTopBar.jsx";
+import {EMAIL_REGEX, NAME_REGEX} from "@utils/validations/regex.js";
 
 function ManageManagersPage() {
     const [manager, setManager] = useState([]);
@@ -11,6 +12,10 @@ function ManageManagersPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
+    const [editLoading, setEditLoading] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [isValidName, setIsValidName] = useState(false);
+    const [isValidEmail, setIsValidEmail] = useState(false);
     const axiosPrivate = useAxiosPrivate();
     const {setTitle} = useTopBar();
     setTitle("Manage Care Home Managers");
@@ -19,6 +24,13 @@ function ManageManagersPage() {
         setLoading(true);
         fetchManager().finally(() => setLoading(false))
     }, []);
+
+    useEffect(() => {
+        if (selectedManager) {
+            setIsValidName(NAME_REGEX.test(selectedManager.name));
+            setIsValidEmail(EMAIL_REGEX.test(selectedManager.email));
+        }
+    }, [selectedManager]);
 
     const fetchManager = async () => {
         try {
@@ -57,23 +69,23 @@ function ManageManagersPage() {
         e.preventDefault();
         setError("");
         setSuccessMessage("");
-        setLoading(true);
+        setEditLoading(true);
         try {
             await axiosPrivate.put(`/auth/users/${selectedManager.id}/`, {
                 name: selectedManager.name,
                 email: selectedManager.email,
             });
             setManager((prevManager) =>
-                prevManager.map((Manager) =>
-                    Manager.id === selectedManager.id ? selectedManager : Manager
+                prevManager.map((manager) =>
+                    manager.id === selectedManager.id ? selectedManager : manager
                 )
             );
             setShowEditModal(false);
+            setSuccessMessage("Successfully updated manager details.");
         } catch (error) {
             console.error("Error:", error);
         } finally {
-            setLoading(false);
-            setSuccessMessage("Successfully updated manager details.");
+            setEditLoading(false);
         }
     };
 
@@ -81,6 +93,7 @@ function ManageManagersPage() {
         setLoading(true);
         setError("");
         setSuccessMessage("");
+        setDeleteLoading(true);
         try {
             await axiosPrivate.delete(`/auth/users/${managerId}/`);
             setManager((prevManager) =>
@@ -90,7 +103,7 @@ function ManageManagersPage() {
         } catch (error) {
             if (error.response.status === 500) {
                 setError(
-                    "Cannot remove admin. Admin already has care homes assigned to him."
+                    "Cannot remove manager. Manager already has care homes assigned to him."
                 );
             } else if (error.request) {
                 console.error("Error request:", error.request);
@@ -99,6 +112,7 @@ function ManageManagersPage() {
             }
         } finally {
             setLoading(false);
+            setDeleteLoading(false);
         }
     };
 
@@ -130,6 +144,7 @@ function ManageManagersPage() {
                                     className={styles.fixButton}
                                     variant="success"
                                     onClick={() => handleShowEditModal(manager)}
+                                    disabled={deleteLoading}
                                 >
                                     Edit
                                 </Button>
@@ -137,8 +152,17 @@ function ManageManagersPage() {
                                     className={styles.fixButton}
                                     variant="danger"
                                     onClick={() => handleDelete(manager.id)}
+                                    disabled={deleteLoading}
                                 >
-                                    Delete
+                                    {deleteLoading ? (
+                                        <Spinner
+                                            as="span"
+                                            animation="border"
+                                            size="sm"
+                                            role="status"
+                                            aria-hidden="true"
+                                        />
+                                    ) : "Delete"}
                                 </Button>
                             </td>
                         </tr>
@@ -146,42 +170,74 @@ function ManageManagersPage() {
                     </tbody>
                 </Table>
 
-                <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
+                <Modal show={showEditModal} onHide={() => setShowEditModal(false)} centered>
                     <Modal.Header closeButton>
-                        <Modal.Title>Edit Admin</Modal.Title>
+                        <Modal.Title>Edit Manager</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         <Form onSubmit={handleEditSubmit}>
                             <Form.Group className="mb-3">
                                 <Form.Label>Name</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    value={selectedManager?.name || ""}
-                                    onChange={(e) =>
-                                        setSelectedManager({
-                                            ...selectedManager,
-                                            name: e.target.value,
-                                        })
-                                    }
-                                    required
-                                />
+                                <InputGroup hasValidation>
+                                    <Form.Control
+                                        type="text"
+                                        value={selectedManager?.name || ""}
+                                        onChange={(e) =>
+                                            setSelectedManager({
+                                                ...selectedManager,
+                                                name: e.target.value,
+                                            })
+                                        }
+                                        isValid={isValidName}
+                                        isInvalid={selectedManager?.name && !isValidName}
+                                        required
+                                    />
+                                    <Form.Control.Feedback type="valid">
+                                        Looks good!
+                                    </Form.Control.Feedback>
+                                    <Form.Control.Feedback type="invalid">
+                                        Name must be at least 3 characters long. (Only alphabets are allowed)
+                                    </Form.Control.Feedback>
+                                </InputGroup>
                             </Form.Group>
                             <Form.Group className="mb-3">
                                 <Form.Label>Email</Form.Label>
-                                <Form.Control
-                                    type="email"
-                                    value={selectedManager?.email || ""}
-                                    onChange={(e) =>
-                                        setSelectedAdmin({
-                                            ...selectedManager,
-                                            email: e.target.value,
-                                        })
-                                    }
-                                    required
-                                />
+                                <InputGroup hasValidation>
+                                    <Form.Control
+                                        type="email"
+                                        value={selectedManager?.email || ""}
+                                        onChange={(e) =>
+                                            setSelectedManager({
+                                                ...selectedManager,
+                                                email: e.target.value,
+                                            })
+                                        }
+                                        isValid={isValidEmail}
+                                        isInvalid={selectedManager?.email && !isValidEmail}
+                                        required
+                                    />
+                                    <Form.Control.Feedback type="valid">
+                                        Looks good!
+                                    </Form.Control.Feedback>
+                                    <Form.Control.Feedback type="invalid">
+                                        Please enter a valid email.
+                                    </Form.Control.Feedback>
+                                </InputGroup>
                             </Form.Group>
-                            <Button variant="primary" type="submit" disabled={loading}>
-                                Save Changes
+                            <Button
+                                variant={!isValidName || !isValidEmail ? "outline-danger":"primary"}
+                                type="submit"
+                                disabled={editLoading || !isValidName || !isValidEmail}
+                            >
+                                {editLoading ? (
+                                    <Spinner
+                                        as="span"
+                                        animation="border"
+                                        size="sm"
+                                        role="status"
+                                        aria-hidden="true"
+                                    />
+                                ) : "Save Changes"}
                             </Button>
                         </Form>
                     </Modal.Body>
@@ -192,7 +248,7 @@ function ManageManagersPage() {
                     style={{zIndex: 1}}
                 >
                     <Toast
-                        show={error}
+                        show={!!error}
                         bg="danger"
                         className="shadow"
                         onClose={() => setError("")}
@@ -210,7 +266,7 @@ function ManageManagersPage() {
                     </Toast>
 
                     <Toast
-                        show={successMessage}
+                        show={!!successMessage}
                         bg="primary"
                         className="shadow"
                         onClose={() => setSuccessMessage("")}

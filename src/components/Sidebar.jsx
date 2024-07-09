@@ -29,11 +29,11 @@ function Sidebar() {
                     <>
                         <NavLink className={({isActive}) => isActive ? styles.active : ""} to='/carehomes/add'>
                             <span className="material-symbols-rounded">add_home</span>
-                            <h3>Add carehome</h3>
+                            <h3>Add Care Home</h3>
                         </NavLink>
                         <NavLink className={({isActive}) => isActive ? styles.active : ""} to='/carehomes/manage'>
                             <span className="material-symbols-rounded">holiday_village</span>
-                            <h3>Manage carehomes</h3>
+                            <h3>Manage Care Homes</h3>
                         </NavLink>
 
                         <NavLink className={({isActive}) => isActive ? styles.active : ""} to='/admins/add'>
@@ -56,11 +56,11 @@ function Sidebar() {
                         </NavLink>
                         <NavLink className={({isActive}) => isActive ? styles.active : ""} to='/managers/add'>
                             <span className="material-symbols-rounded">person_add</span>
-                            <h3>Add manager</h3>
+                            <h3>Add Care Home manager</h3>
                         </NavLink>
                         <NavLink className={({isActive}) => isActive ? styles.active : ""} to='/managers/manage'>
                             <span className="material-symbols-rounded">manage_accounts</span>
-                            <h3>Manage manager</h3>
+                            <h3>Manage Care Home managers</h3>
                         </NavLink>
                         <NavLink className={({isActive}) => isActive ? styles.active : ""} to='/reports/view'>
                             <span className="material-symbols-rounded">contact_page</span>
