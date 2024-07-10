@@ -35,7 +35,7 @@ function UploadReportPage() {
     };
 
     const validateForm = () => {
-        if (!selectedDate || !selectedFile || !note) {
+        if (!selectedDate || !selectedFile) {
             setErrorMessage("Please fill in all fields before submitting.");
             return false;
         }

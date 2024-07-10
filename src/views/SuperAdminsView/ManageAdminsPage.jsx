@@ -9,7 +9,9 @@ function ManageAdminsPage() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedAdmin, setSelectedAdmin] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [showConfirmRemoveModal, setShowConfirmRemoveModal] = useState(false);
+    const [adminForRemoval, setAdminForRemoval] = useState(null);
+    const [errorMessage, setErrorMessage] = useState("");
     const axiosPrivate = useAxiosPrivate();
     const {setTitle} = useTopBar();
     setTitle("Manage Care Home Admins");
@@ -24,7 +26,6 @@ function ManageAdminsPage() {
             setAdmins(adminsData);
         } catch (error) {
             console.error("Error:", error);
-        } finally {
         }
     };
 
@@ -56,7 +57,7 @@ function ManageAdminsPage() {
 
     const handleEditSubmit = async (e) => {
         e.preventDefault();
-        setError("");
+        setErrorMessage("");
         setLoading(true);
         try {
             await axiosPrivate.put(`/auth/users/${selectedAdmin.id}/`, {
@@ -76,17 +77,21 @@ function ManageAdminsPage() {
         }
     };
 
-    const handleDelete = async (adminId) => {
+    const handleDelete = async () => {
         setLoading(true);
-        setError("");
+        setErrorMessage("");
         try {
-            await axiosPrivate.delete(`/auth/users/${adminId}/`);
+            if (adminForRemoval === null) {
+                setErrorMessage("Please select an admin to delete!");
+                return;
+            }
+            await axiosPrivate.delete(`/auth/users/${adminForRemoval}/`);
             setAdmins((prevAdmins) =>
-                prevAdmins.filter((admin) => admin.id !== adminId)
+                prevAdmins.filter((admin) => admin.id !== adminForRemoval)
             );
         } catch (error) {
             if (error.response.status === 500) {
-                setError(
+                setErrorMessage(
                     "Cannot remove admin. Admin already has care homes assigned to him."
                 );
             } else if (error.request) {
@@ -98,6 +103,14 @@ function ManageAdminsPage() {
             setLoading(false);
         }
     };
+
+    const toggleConfirmRemoveModal = () => {
+        if (showConfirmRemoveModal) {
+            setAdminForRemoval(null);
+        }
+        setShowConfirmRemoveModal(!showConfirmRemoveModal);
+    };
+
     return (
         <>
             {loading ?
@@ -133,7 +146,10 @@ function ManageAdminsPage() {
                                     <Button
                                         className={styles.fixButton}
                                         variant="danger"
-                                        onClick={() => handleDelete(admin.id)}
+                                        onClick={() => {
+                                            setAdminForRemoval(admin.id);
+                                            toggleConfirmRemoveModal();
+                                        }}
                                     >
                                         Delete
                                     </Button>
@@ -142,10 +158,10 @@ function ManageAdminsPage() {
                         ))}
                         </tbody>
                     </Table>
-                    {error && (
+                    {errorMessage && (
                         <Alert variant="danger">
                             <Alert.Heading>Error</Alert.Heading>
-                            <p>{error}</p>
+                            <p>{errorMessage}</p>
                         </Alert>
                     )}
 
@@ -182,6 +198,30 @@ function ManageAdminsPage() {
                                 </Button>
                             </Form>
                         </Modal.Body>
+                    </Modal>
+                    <Modal
+                        show={showConfirmRemoveModal}
+                        onHide={toggleConfirmRemoveModal}
+                        centered
+                    >
+                        <Modal.Header closeButton>
+                            <Modal.Title>Warning</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            Are you sure you want to remove the assigned admin from this care
+                            home?
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={()=> {
+                                setAdminForRemoval(null);
+                                toggleConfirmRemoveModal();
+                            }}>
+                                Cancel
+                            </Button>
+                            <Button variant="danger" onClick={handleDelete}>
+                                Confirm Removal
+                            </Button>
+                        </Modal.Footer>
                     </Modal>
                 </Container>}
         </>

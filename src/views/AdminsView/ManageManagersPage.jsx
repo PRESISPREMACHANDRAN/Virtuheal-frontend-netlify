@@ -9,6 +9,7 @@ function ManageManagersPage() {
     const [manager, setManager] = useState([]);
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedManager, setSelectedManager] = useState(null);
+    const [managerForRemoval, setManagerForRemoval] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
@@ -16,6 +17,7 @@ function ManageManagersPage() {
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [isValidName, setIsValidName] = useState(false);
     const [isValidEmail, setIsValidEmail] = useState(false);
+    const [showConfirmRemoveModal, setShowConfirmRemoveModal] = useState(false);
     const axiosPrivate = useAxiosPrivate();
     const {setTitle} = useTopBar();
     setTitle("Manage Care Home Managers");
@@ -89,15 +91,19 @@ function ManageManagersPage() {
         }
     };
 
-    const handleDelete = async (managerId) => {
+    const handleDelete = async () => {
         setLoading(true);
         setError("");
         setSuccessMessage("");
         setDeleteLoading(true);
         try {
-            await axiosPrivate.delete(`/auth/users/${managerId}/`);
+            if (managerForRemoval === null) {
+                setError("Please select a manager to delete!");
+                return;
+            }
+            await axiosPrivate.delete(`/auth/users/${managerForRemoval}/`);
             setManager((prevManager) =>
-                prevManager.filter((manager) => manager.id !== managerId)
+                prevManager.filter((manager) => manager.id !== managerForRemoval)
             );
             setSuccessMessage("Successfully deleted manager details.");
         } catch (error) {
@@ -115,6 +121,14 @@ function ManageManagersPage() {
             setDeleteLoading(false);
         }
     };
+
+    const toggleConfirmRemoveModal = () => {
+        if (showConfirmRemoveModal) {
+            setManagerForRemoval(null);
+        }
+        setShowConfirmRemoveModal(!showConfirmRemoveModal);
+    };
+
 
     return <>
         {loading ?
@@ -151,7 +165,10 @@ function ManageManagersPage() {
                                 <Button
                                     className={styles.fixButton}
                                     variant="danger"
-                                    onClick={() => handleDelete(manager.id)}
+                                    onClick={() => {
+                                        setManagerForRemoval(manager.id);
+                                        toggleConfirmRemoveModal();
+                                    }}
                                     disabled={deleteLoading}
                                 >
                                     {deleteLoading ? (
@@ -225,7 +242,7 @@ function ManageManagersPage() {
                                 </InputGroup>
                             </Form.Group>
                             <Button
-                                variant={!isValidName || !isValidEmail ? "outline-danger":"primary"}
+                                variant={!isValidName || !isValidEmail ? "outline-danger" : "primary"}
                                 type="submit"
                                 disabled={editLoading || !isValidName || !isValidEmail}
                             >
@@ -241,6 +258,29 @@ function ManageManagersPage() {
                             </Button>
                         </Form>
                     </Modal.Body>
+                </Modal>
+                <Modal
+                    show={showConfirmRemoveModal}
+                    onHide={toggleConfirmRemoveModal}
+                    centered
+                >
+                    <Modal.Header closeButton>
+                        <Modal.Title>Warning</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        Are you sure you want to delete the manager? This action is permanent and cannot be undone.
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => {
+                            toggleConfirmRemoveModal();
+                            setManagerForRemoval(null);
+                        }}>
+                            Cancel
+                        </Button>
+                        <Button variant="danger" onClick={handleDelete}>
+                            Confirm Removal
+                        </Button>
+                    </Modal.Footer>
                 </Modal>
                 <ToastContainer
                     className="p-3"

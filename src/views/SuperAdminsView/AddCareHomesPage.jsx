@@ -84,6 +84,12 @@ function AddCareHomesPage() {
             } else if (error.response?.status === 400) {
                 if (error.response?.data[0] === "A care home with the same name and address already exists.") {
                     setErrorMessage("A Care Home with the given details already exists. Try again with different Care Home details.");
+                    setName("");
+                    setStreet("");
+                    setCity("");
+                    setState("");
+                    setZipCode("");
+                    setTimeout(() => setErrorMessage(""), 5000);
                 } else {
                     setErrorMessage("A Care Home with the given details cannot be added. Try again with different Care Home details.");
                 }

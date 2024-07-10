@@ -72,7 +72,7 @@ function AddAdminsPage() {
             );
             const data = response?.data;
             setSuccessMessage(`${data.name} has been successfully registered as new Admin.`);
-            setTimeout(()=>setSuccessMessage(""), 5000);
+            setTimeout(() => setSuccessMessage(""), 5000);
             setName('');
             setEmail("")
             setPasswd('');
@@ -84,6 +84,11 @@ function AddAdminsPage() {
                 console.log(error.response);
                 if (error.response?.data?.email[0] === "interface user with this email already exists.") {
                     setErrorMessage("An admin account with this email already exists. Try adding with another email.")
+                    setTimeout(() => setErrorMessage(""), 5000);
+                    setName('');
+                    setEmail("")
+                    setPasswd('');
+                    setPasswdConfirm('');
                 }
             } else {
                 setErrorMessage('An error occurred while adding admin');

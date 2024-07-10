@@ -28,9 +28,11 @@ function ManageCareHomesPage() {
     const [loadingAssignableAdmins, setLoadingAssignableAdmins] = useState(false);
     const [assigningAdmin, setAssigningAdmin] = useState(false);
     const axiosPrivate = useAxiosPrivate();
-    const [showConfirmRemoveModal, setShowConfirmRemoveModal] = useState(false);
+    const [showConfirmUnassignModal, setShowConfirmUnassignModal] = useState(false);
+    const [showConfirmDeletionModal, setShowConfirmDeletionModal] = useState(false);
+    const [careHomeForRemoval, setCareHomeForRemoval] = useState(null);
     let allAdmins = [];
-    const [error, setError] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const {setTitle} = useTopBar()
     const [isLoading, setIsLoading] = useState(false);
@@ -50,7 +52,7 @@ function ManageCareHomesPage() {
                 }
             });
         } catch (error) {
-            setError("An error occurred while getting some Care Home details. Please try again later.");
+            setErrorMessage("An error occurred while getting some Care Home details. Please try again later.");
         }
     };
 
@@ -67,7 +69,7 @@ function ManageCareHomesPage() {
             }
             return results.flat();
         } catch (error) {
-            setError("An error occured while getting Care Home details. Please try again later.");
+            setErrorMessage("An error occured while getting Care Home details. Please try again later.");
         } finally {
             setIsLoading(false);
         }
@@ -101,7 +103,7 @@ function ManageCareHomesPage() {
                 await fetchAllAdmins(response?.data?.next);
             }
         } catch (error) {
-            setError("An error occurred while getting admin details. Please try again later.");
+            setErrorMessage("An error occurred while getting admin details. Please try again later.");
         }
     };
 
@@ -129,21 +131,25 @@ function ManageCareHomesPage() {
         setSelectedAdmin(admin);
     };
 
-    const handleDelete = async (careHomeUrl) => {
+    const handleDeleteCareHome = async () => {
         try {
-            await axiosPrivate.delete(careHomeUrl).then(() => setSuccessMessage("Successfully deleted Care Home."))
+            if (careHomeForRemoval === null) {
+                setErrorMessage("Please select a CareHome for removal.");
+                return;
+            }
+            await axiosPrivate.delete(careHomeForRemoval).then(() => setSuccessMessage("Successfully deleted Care Home."))
             setCareHomeElements((prevElements) =>
-                prevElements.filter((elm) => elm.url !== careHomeUrl)
+                prevElements.filter((elm) => elm.url !== careHomeForRemoval)
             );
             await getCareHomes();
         } catch (error) {
-            setError("Cannot remove Care Home. Care Home either has a manager assigned or already has residents.");
+            setErrorMessage("Cannot remove Care Home. Care Home either has a manager assigned or already has residents.");
         }
     };
 
     const handleEditSubmit = async (event) => {
         event.preventDefault();
-        setError("");
+        setErrorMessage("");
         const updatedCareHome = {
             name: event.target.name.value,
             address: event.target.address.value,
@@ -167,13 +173,13 @@ function ManageCareHomesPage() {
             );
             handleCloseEditModal();
         } catch (error) {
-            setError("Failed to update Care Home details. Please try again later.");
+            setErrorMessage("Failed to update Care Home details. Please try again later.");
         }
     };
 
     const assignAdmin = async (careHomeUrl, admin) => {
         setAssigningAdmin(true);
-        setError("");
+        setErrorMessage("");
         try {
             const careHome = await axiosPrivate.get(careHomeUrl);
             await axiosPrivate.put(
@@ -187,17 +193,24 @@ function ManageCareHomesPage() {
             await getCareHomes();
             handleCloseAssignModal();
         } catch (error) {
-            setError("Failed to assign admin. Please try again later.");
+            setErrorMessage("Failed to assign admin. Please try again later.");
         } finally {
             setAssigningAdmin(false);
         }
     };
 
-    const toggleConfirmRemoveModal = () => {
-        setShowConfirmRemoveModal(!showConfirmRemoveModal);
+    const toggleConfirmUnassignModal = () => {
+        setShowConfirmUnassignModal(!showConfirmUnassignModal);
     };
 
-    const handleRemove = async () => {
+    const toggleConfirmDeletionModal = () => {
+        if (showConfirmDeletionModal) {
+            setCareHomeForRemoval(null);
+        }
+        setShowConfirmDeletionModal(!showConfirmDeletionModal);
+    };
+
+    const handleUnassignAdmin = async () => {
         if (!selectedCareHomeUrl) return;
         try {
             const careHome = await axiosPrivate.get(selectedCareHomeUrl);
@@ -210,7 +223,7 @@ function ManageCareHomesPage() {
                 })
             );
             await getCareHomes();
-            toggleConfirmRemoveModal();
+            toggleConfirmUnassignModal();
         } catch (error) {
             console.error("Error:", error);
         }
@@ -262,7 +275,7 @@ function ManageCareHomesPage() {
                                                         className="shadow"
                                                         onClick={() => {
                                                             setSelectedCareHomeUrl(result.url);
-                                                            toggleConfirmRemoveModal();
+                                                            toggleConfirmDeletionModal();
                                                         }}
                                                     >
                                                         <span className="material-symbols-rounded">delete</span>
@@ -287,7 +300,10 @@ function ManageCareHomesPage() {
                                     <Button
                                         className="shadow mx-3 p-2"
                                         variant="danger"
-                                        onClick={() => handleDelete(result.url)}
+                                        onClick={() => {
+                                            setCareHomeForRemoval(result.url);
+                                            toggleConfirmDeletionModal();
+                                        }}
                                     >
                                         Delete
                                     </Button>
@@ -413,8 +429,8 @@ function ManageCareHomesPage() {
                     </Modal>
 
                     <Modal
-                        show={showConfirmRemoveModal}
-                        onHide={toggleConfirmRemoveModal}
+                        show={showConfirmUnassignModal}
+                        onHide={toggleConfirmUnassignModal}
                         centered
                     >
                         <Modal.Header closeButton>
@@ -425,10 +441,33 @@ function ManageCareHomesPage() {
                             home?
                         </Modal.Body>
                         <Modal.Footer>
-                            <Button variant="secondary" onClick={toggleConfirmRemoveModal}>
+                            <Button variant="secondary" onClick={toggleConfirmUnassignModal}>
                                 Cancel
                             </Button>
-                            <Button variant="danger" onClick={handleRemove}>
+                            <Button variant="danger" onClick={handleUnassignAdmin}>
+                                Confirm Removal
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+                    <Modal
+                        show={showConfirmDeletionModal}
+                        onHide={toggleConfirmDeletionModal}
+                        centered
+                    >
+                        <Modal.Header closeButton>
+                            <Modal.Title>Warning</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            Are you sure you want to delete the carehome? This action is permanent and cannot be undone.
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={()=> {
+                                setCareHomeForRemoval(null);
+                                toggleConfirmDeletionModal();
+                            }}>
+                                Cancel
+                            </Button>
+                            <Button variant="danger" onClick={handleDeleteCareHome}>
                                 Confirm Removal
                             </Button>
                         </Modal.Footer>
@@ -439,10 +478,10 @@ function ManageCareHomesPage() {
                         style={{zIndex: 1}}
                     >
                         <Toast
-                            show={error}
+                            show={errorMessage}
                             bg="danger"
                             className="shadow"
-                            onClose={() => setError("")}
+                            onClose={() => setErrorMessage("")}
                         >
                             <Toast.Header>
                                 <h1 className="me-auto">Error!</h1>
@@ -451,7 +490,7 @@ function ManageCareHomesPage() {
                                 className="text-light p-3"
                             >
                                 <h2>
-                                    {error}
+                                    {errorMessage}
                                 </h2>
                             </Toast.Body>
                         </Toast>
