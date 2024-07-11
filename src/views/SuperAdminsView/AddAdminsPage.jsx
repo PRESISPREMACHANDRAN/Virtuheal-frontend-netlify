@@ -59,6 +59,7 @@ function AddAdminsPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSuccessMessage("");
+        setErrorMessage("");
         setLoading(true);
         try {
 

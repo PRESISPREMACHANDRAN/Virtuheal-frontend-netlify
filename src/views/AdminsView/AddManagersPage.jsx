@@ -57,6 +57,7 @@ function AddManagersPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSuccessMessage("");
+        setErrorMessage("");
         setLoading(true);
         try {
             const response = await axiosPrivate.post(ADD_MANAGER_ENDPOINT,

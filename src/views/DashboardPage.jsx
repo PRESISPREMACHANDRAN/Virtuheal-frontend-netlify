@@ -1,5 +1,5 @@
 import useAuth from "@hooks/useAuth.jsx";
-import {Container} from "react-bootstrap";
+import {Container, Spinner} from "react-bootstrap";
 import CareHomeManagers from "@components/CareHomeManagers.jsx";
 import useTopBar from "@hooks/useTopBar.jsx";
 import {useEffect, useState} from "react";
@@ -7,77 +7,83 @@ import {axiosPrivate} from "@/api/axios.js";
 
 function DashboardPage() {
     const {auth} = useAuth();
-    const {setTitle} = useTopBar()
+    const {setTitle} = useTopBar();
     const [numAssociates, setNumAssociates] = useState(0);
-    const [numFeedbacks, setNumFeedbacks] = useState(0)
+    const [numFeedbacks, setNumFeedbacks] = useState(0);
     const [numAdmins, setNumAdmins] = useState(0);
-    const [numCarehomes, setNumCarehomes] = useState(0)
+    const [numCarehomes, setNumCarehomes] = useState(0);
+
+    const [loadingAssociates, setLoadingAssociates] = useState(false);
+    const [loadingFeedbacks, setLoadingFeedbacks] = useState(false);
+    const [loadingAdmins, setLoadingAdmins] = useState(false);
+    const [loadingCarehomes, setLoadingCarehomes] = useState(false);
 
     const getNumAssociates = async () => {
+        setLoadingAssociates(true);
         try {
-            const response = await axiosPrivate("/associates/")
+            const response = await axiosPrivate("/associates/");
             setNumAssociates(response?.data?.count);
         } catch (error) {
             console.log("Error");
+        } finally {
+            setLoadingAssociates(false);
         }
-    }
-    useEffect(() => {
-    }, []);
+    };
 
     const getNumFeedbacks = async () => {
+        setLoadingFeedbacks(true);
         try {
-            const response = await axiosPrivate("/feedbacks/")
+            const response = await axiosPrivate("/feedbacks/");
             setNumFeedbacks(response?.data?.count);
         } catch (error) {
             console.log("Error");
+        } finally {
+            setLoadingFeedbacks(false);
         }
-    }
-
-    useEffect(() => {
-    }, []);
-
+    };
 
     const getNumAdmins = async () => {
+        setLoadingAdmins(true);
         try {
-            const response = await axiosPrivate("/auth/users/",
-                {
-                    params: {
-                        type: "admin"
-                    }
+            const response = await axiosPrivate("/auth/users/", {
+                params: {
+                    type: "admin"
                 }
-            )
+            });
             setNumAdmins(response?.data?.count);
         } catch (error) {
             console.log("Error");
+        } finally {
+            setLoadingAdmins(false);
         }
-    }
-
-    useEffect(() => {
-    }, []);
+    };
 
     const getNumCarehomes = async () => {
+        setLoadingCarehomes(true);
         try {
-            const response = await axiosPrivate("/carehomes/")
+            const response = await axiosPrivate("/carehomes/");
             setNumCarehomes(response?.data?.count);
         } catch (error) {
             console.log("Error");
+        } finally {
+            setLoadingCarehomes(false);
         }
-    }
-
+    };
 
     useEffect(() => {
         if (auth?.isAdmin) {
-            getNumFeedbacks()
-            getNumAssociates()
+            getNumFeedbacks();
+            getNumAssociates();
         }
 
         if (auth?.isSuperAdmin) {
-            getNumAdmins()
-            getNumCarehomes()
+            getNumAdmins();
+            getNumCarehomes();
         }
     }, []);
 
     setTitle("Dashboard");
+
     return (
         <>
             <Container fluid className="mx-3">
@@ -90,7 +96,11 @@ function DashboardPage() {
                                 <div className="middle">
                                     <div className="left">
                                         <h3>Total residents</h3>
-                                        <h1>{numAssociates}</h1>
+                                        {loadingAssociates ? (
+                                            <Spinner animation="border" size="sm" />
+                                        ) : (
+                                            <h1>{numAssociates}</h1>
+                                        )}
                                     </div>
                                     <div className="progress"></div>
                                 </div>
@@ -101,14 +111,18 @@ function DashboardPage() {
                                 <div className="middle">
                                     <div className="left">
                                         <h3>Total feedbacks</h3>
-                                        <h1>{numFeedbacks}</h1>
+                                        {loadingFeedbacks ? (
+                                            <Spinner animation="border" size="sm" />
+                                        ) : (
+                                            <h1>{numFeedbacks}</h1>
+                                        )}
                                     </div>
                                     <div className="progress"></div>
                                 </div>
                                 <small className="text-muted">Last 24 hours</small>
                             </div>
                         </div>
-                        <CareHomeManagers/>
+                        <CareHomeManagers />
                     </>
                 )}
                 {auth.isSuperAdmin && (
@@ -118,7 +132,11 @@ function DashboardPage() {
                             <div className="middle">
                                 <div className="left">
                                     <h3>Total admins</h3>
-                                    <h1>{numAdmins}</h1>
+                                    {loadingAdmins ? (
+                                        <Spinner animation="border" size="sm" />
+                                    ) : (
+                                        <h1>{numAdmins}</h1>
+                                    )}
                                 </div>
                                 <div className="progress"></div>
                             </div>
@@ -129,7 +147,11 @@ function DashboardPage() {
                             <div className="middle">
                                 <div className="left">
                                     <h3>Total care homes</h3>
-                                    <h1>{numCarehomes}</h1>
+                                    {loadingCarehomes ? (
+                                        <Spinner animation="border" size="sm" />
+                                    ) : (
+                                        <h1>{numCarehomes}</h1>
+                                    )}
                                 </div>
                                 <div className="progress"></div>
                             </div>

@@ -1,17 +1,17 @@
 import {useState, useEffect} from "react";
 import {Button, Modal, Form, Table, Container, Spinner, Toast, ToastContainer, InputGroup} from "react-bootstrap";
-import styles from "./ManageManagersPage.module.css";
+import styles from "./ManageResidentsPage.module.css";
 import useAxiosPrivate from "@hooks/useAxiosPrivate";
 import useTopBar from "@hooks/useTopBar.jsx";
 import {EMAIL_REGEX, NAME_REGEX} from "@utils/validations/regex.js";
 
-function ManageManagersPage() {
+function ManageResidentsPage() {
     const [manager, setManager] = useState([]);
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedManager, setSelectedManager] = useState(null);
     const [managerForRemoval, setManagerForRemoval] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [errorMessage, setErrorMessage] = useState("");
+    const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const [editLoading, setEditLoading] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
@@ -20,7 +20,7 @@ function ManageManagersPage() {
     const [showConfirmRemoveModal, setShowConfirmRemoveModal] = useState(false);
     const axiosPrivate = useAxiosPrivate();
     const {setTitle} = useTopBar();
-    setTitle("Manage Care Home Managers");
+    setTitle("Manage residents");
 
     useEffect(() => {
         setLoading(true);
@@ -39,7 +39,7 @@ function ManageManagersPage() {
             const managerData = await fetchAllManager();
             setManager(managerData);
         } catch (error) {
-            setErrorMessage("Failed to fetch some managers. Please try again later.")
+            setError("Failed to fetch some managers. Please try again later.")
         }
     };
 
@@ -57,7 +57,7 @@ function ManageManagersPage() {
                 allManager = [...allManager, ...nextPageManager];
             }
         } catch (error) {
-            setErrorMessage("Failed to fetch managers. Please try again later.")
+            setError("Failed to fetch managers. Please try again later.")
         }
         return allManager;
     };
@@ -69,7 +69,7 @@ function ManageManagersPage() {
 
     const handleEditSubmit = async (e) => {
         e.preventDefault();
-        setErrorMessage("");
+        setError("");
         setSuccessMessage("");
         setEditLoading(true);
         try {
@@ -93,12 +93,12 @@ function ManageManagersPage() {
 
     const handleDelete = async () => {
         setLoading(true);
-        setErrorMessage("");
+        setError("");
         setSuccessMessage("");
         setDeleteLoading(true);
         try {
             if (managerForRemoval === null) {
-                setErrorMessage("Please select a manager to delete!");
+                setError("Please select a manager to delete!");
                 return;
             }
             await axiosPrivate.delete(`/auth/users/${managerForRemoval}/`);
@@ -108,7 +108,7 @@ function ManageManagersPage() {
             setSuccessMessage("Successfully deleted manager details.");
         } catch (error) {
             if (error.response.status === 500) {
-                setErrorMessage(
+                setError(
                     "Cannot remove manager. Manager already has care homes assigned to him."
                 );
             } else if (error.request) {
@@ -117,7 +117,6 @@ function ManageManagersPage() {
                 console.error("Error message:", error.message);
             }
         } finally {
-            toggleConfirmRemoveModal();
             setLoading(false);
             setDeleteLoading(false);
         }
@@ -289,10 +288,10 @@ function ManageManagersPage() {
                     style={{zIndex: 1}}
                 >
                     <Toast
-                        show={errorMessage}
+                        show={!!error}
                         bg="danger"
                         className="shadow"
-                        onClose={() => setErrorMessage("")}
+                        onClose={() => setError("")}
                     >
                         <Toast.Header>
                             <h1 className="me-auto">Error!</h1>
@@ -301,13 +300,13 @@ function ManageManagersPage() {
                             className="text-light p-3"
                         >
                             <h2>
-                                {errorMessage}
+                                {error}
                             </h2>
                         </Toast.Body>
                     </Toast>
 
                     <Toast
-                        show={successMessage}
+                        show={!!successMessage}
                         bg="primary"
                         className="shadow"
                         onClose={() => setSuccessMessage("")}
@@ -329,4 +328,4 @@ function ManageManagersPage() {
     </>
 }
 
-export default ManageManagersPage;
+export default ManageResidentsPage;

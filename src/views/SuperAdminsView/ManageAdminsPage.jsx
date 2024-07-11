@@ -1,5 +1,5 @@
 import {useState, useEffect} from "react";
-import {Button, Modal, Form, Table, Container, Alert, Spinner} from "react-bootstrap";
+import {Button, Modal, Form, Table, Container, Spinner, Toast, ToastContainer} from "react-bootstrap";
 import styles from "./ManageAdminsPage.module.css";
 import useAxiosPrivate from "@hooks/useAxiosPrivate";
 import useTopBar from "@hooks/useTopBar.jsx";
@@ -12,6 +12,7 @@ function ManageAdminsPage() {
     const [showConfirmRemoveModal, setShowConfirmRemoveModal] = useState(false);
     const [adminForRemoval, setAdminForRemoval] = useState(null);
     const [errorMessage, setErrorMessage] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
     const axiosPrivate = useAxiosPrivate();
     const {setTitle} = useTopBar();
     setTitle("Manage Care Home Admins");
@@ -57,6 +58,7 @@ function ManageAdminsPage() {
 
     const handleEditSubmit = async (e) => {
         e.preventDefault();
+        setSuccessMessage("");
         setErrorMessage("");
         setLoading(true);
         try {
@@ -70,6 +72,7 @@ function ManageAdminsPage() {
                 )
             );
             setShowEditModal(false);
+            setSuccessMessage("Succesfully updated admin details.");
         } catch (error) {
             console.error("Error:", error);
         } finally {
@@ -79,6 +82,7 @@ function ManageAdminsPage() {
 
     const handleDelete = async () => {
         setLoading(true);
+        setSuccessMessage("");
         setErrorMessage("");
         try {
             if (adminForRemoval === null) {
@@ -89,6 +93,7 @@ function ManageAdminsPage() {
             setAdmins((prevAdmins) =>
                 prevAdmins.filter((admin) => admin.id !== adminForRemoval)
             );
+            setSuccessMessage("Successfully deleted Care Home admin.");
         } catch (error) {
             if (error.response.status === 500) {
                 setErrorMessage(
@@ -101,6 +106,7 @@ function ManageAdminsPage() {
             }
         } finally {
             setLoading(false);
+            toggleConfirmRemoveModal();
         }
     };
 
@@ -158,12 +164,6 @@ function ManageAdminsPage() {
                         ))}
                         </tbody>
                     </Table>
-                    {errorMessage && (
-                        <Alert variant="danger">
-                            <Alert.Heading>Error</Alert.Heading>
-                            <p>{errorMessage}</p>
-                        </Alert>
-                    )}
 
                     <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
                         <Modal.Header closeButton>
@@ -223,6 +223,47 @@ function ManageAdminsPage() {
                             </Button>
                         </Modal.Footer>
                     </Modal>
+                    <ToastContainer
+                    className="p-3"
+                    position="bottom-end"
+                    style={{zIndex: 1}}
+                >
+                    <Toast
+                        show={errorMessage}
+                        bg="danger"
+                        className="shadow"
+                        onClose={() => setErrorMessage("")}
+                    >
+                        <Toast.Header>
+                            <h1 className="me-auto">Error!</h1>
+                        </Toast.Header>
+                        <Toast.Body
+                            className="text-light p-3"
+                        >
+                            <h2>
+                                {errorMessage}
+                            </h2>
+                        </Toast.Body>
+                    </Toast>
+
+                    <Toast
+                        show={successMessage}
+                        bg="primary"
+                        className="shadow"
+                        onClose={() => setSuccessMessage("")}
+                    >
+                        <Toast.Header>
+                            <h1 className="me-auto">Success!</h1>
+                        </Toast.Header>
+                        <Toast.Body
+                            className="text-light p-3"
+                        >
+                            <h2>
+                                {successMessage}
+                            </h2>
+                        </Toast.Body>
+                    </Toast>
+                </ToastContainer>
                 </Container>}
         </>
     );

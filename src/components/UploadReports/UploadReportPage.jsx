@@ -48,6 +48,8 @@ function UploadReportPage() {
         }
 
         setIsSubmitting(true);
+        setErrorMessage("");
+        setSuccessMessage("");
 
         const formData = new FormData();
         formData.append("associate", url);
@@ -69,7 +71,7 @@ function UploadReportPage() {
                 setNote("");
                 setResetFileInput(true);
                 setTimeout(() => setResetFileInput(false), 0);
-                setTimeout(() => navigate('/reports/add'), 2000);
+                setTimeout(() => navigate('/reports/add'), 5000);
             } else {
                 const errorData = await response.data;
                 setErrorMessage(errorData.message || 'Failed to upload report. Please try again.');

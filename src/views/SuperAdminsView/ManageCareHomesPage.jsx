@@ -110,7 +110,7 @@ function ManageCareHomesPage() {
     const handleShowAssignModal = (careHomeUrl) => {
         setSelectedCareHomeUrl(careHomeUrl);
         setLoadingAssignableAdmins(true);
-        fetchAllAdmins().finally(()=>setLoadingAssignableAdmins(false));
+        fetchAllAdmins().finally(() => setLoadingAssignableAdmins(false));
         setShowAssignModal(true);
     };
 
@@ -132,6 +132,8 @@ function ManageCareHomesPage() {
     };
 
     const handleDeleteCareHome = async () => {
+        setErrorMessage("");
+        setSuccessMessage("");
         try {
             if (careHomeForRemoval === null) {
                 setErrorMessage("Please select a CareHome for removal.");
@@ -144,6 +146,8 @@ function ManageCareHomesPage() {
             await getCareHomes();
         } catch (error) {
             setErrorMessage("Cannot remove Care Home. Care Home either has a manager assigned or already has residents.");
+        } finally {
+            toggleConfirmDeletionModal();
         }
     };
 
@@ -180,6 +184,7 @@ function ManageCareHomesPage() {
     const assignAdmin = async (careHomeUrl, admin) => {
         setAssigningAdmin(true);
         setErrorMessage("");
+        setSuccessMessage("")
         try {
             const careHome = await axiosPrivate.get(careHomeUrl);
             await axiosPrivate.put(
@@ -191,6 +196,7 @@ function ManageCareHomesPage() {
                 })
             );
             await getCareHomes();
+            setSuccessMessage("Successfully assigned Care Home admin.");
             handleCloseAssignModal();
         } catch (error) {
             setErrorMessage("Failed to assign admin. Please try again later.");
@@ -211,7 +217,12 @@ function ManageCareHomesPage() {
     };
 
     const handleUnassignAdmin = async () => {
-        if (!selectedCareHomeUrl) return;
+        if (!selectedCareHomeUrl) {
+            setErrorMessage("Please select an admin for removal.");
+            return;
+        }
+        setSuccessMessage("");
+        setErrorMessage("");
         try {
             const careHome = await axiosPrivate.get(selectedCareHomeUrl);
             await axiosPrivate.put(
@@ -223,9 +234,11 @@ function ManageCareHomesPage() {
                 })
             );
             await getCareHomes();
-            toggleConfirmUnassignModal();
+            setSuccessMessage("Successfully unassigned Care Home admin.");
         } catch (error) {
-            console.error("Error:", error);
+            setErrorMessage("Failed to assign admin. Please try again later.");
+        } finally {
+            toggleConfirmUnassignModal();
         }
     };
 
@@ -241,7 +254,7 @@ function ManageCareHomesPage() {
                 :
                 <Container fluid className="m-3 p-4 border rounded-4">
                     <Table responsive hover
-                    className="shadow"
+                           className="shadow"
                     >
                         <thead>
                         <tr>
@@ -253,7 +266,7 @@ function ManageCareHomesPage() {
                         </tr>
                         </thead>
                         <tbody
-                        className="rounded-4 border"
+                            className="rounded-4 border"
                         >
                         {careHomeElements.map((result) => (
                             <tr key={result.url}>
@@ -275,7 +288,7 @@ function ManageCareHomesPage() {
                                                         className="shadow"
                                                         onClick={() => {
                                                             setSelectedCareHomeUrl(result.url);
-                                                            toggleConfirmDeletionModal();
+                                                            toggleConfirmUnassignModal();
                                                         }}
                                                     >
                                                         <span className="material-symbols-rounded">delete</span>
@@ -461,7 +474,7 @@ function ManageCareHomesPage() {
                             Are you sure you want to delete the carehome? This action is permanent and cannot be undone.
                         </Modal.Body>
                         <Modal.Footer>
-                            <Button variant="secondary" onClick={()=> {
+                            <Button variant="secondary" onClick={() => {
                                 setCareHomeForRemoval(null);
                                 toggleConfirmDeletionModal();
                             }}>

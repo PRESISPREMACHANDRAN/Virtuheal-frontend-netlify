@@ -121,7 +121,7 @@ const CareHomeManagers = () => {
                 </Spinner>
                 <h2>Please wait</h2><h3>Loading Care Homes...</h3>
             </div>) : carehomes.length ? <Row>
-                {carehomes.map(carehome => (<Col md={6} lg={4} key={carehome.id} className="mb-4">
+                {carehomes.map(carehome => (<Col key={carehome.id} className="mb-4">
                     <Card className="shadow-sm rounded-3" style={{minWidth: "25vw"}}>
                         <Card.Header className="bg-primary text-white">
                             <h2 className="m-3 py-2 text-center">{carehome.name}<span
@@ -156,15 +156,16 @@ const CareHomeManagers = () => {
                                                     onClick={() => handleRemoveManager(manager.carehomeManagerId)}
                                                     disabled={removing[manager.carehomeManagerId]}
                                                 >
-                                                    {removing[manager.carehomeManagerId] ? (<Spinner
+                                                    {removing[manager.carehomeManagerId] ?
+                                                        <Spinner
                                                             as="span"
                                                             animation="border"
                                                             size="sm"
                                                             role="status"
                                                             aria-hidden="true"
-                                                        />)
+                                                        />
                                                         :
-                                                        <span className="material-symbols-rounded">delete</span>
+                                                        "Unassign"
                                                     }
                                                 </Button>
                                             </ListGroup.Item>))) : (
@@ -195,59 +196,59 @@ const CareHomeManagers = () => {
             }
 
             <Modal show={showModal} onHide={handleHideModal} centered>
-            <Modal.Header closeButton>
-                <Modal.Title>Assign Manager</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-                {assigning ? (
-                    <div className="text-center m-3 p-4">
-                        <Spinner animation="border" role="status">
-                            <span className="visually-hidden">Assigning...</span>
-                        </Spinner>
-                        <h2>Assigning...</h2>
-                        <h3>Please wait</h3>
-                    </div>
-                ) : (managersLoading ? (
-                    <div className="text-center m-2 p-3">
-                        <Spinner animation="border" role="status">
-                            <span className="visually-hidden">Loading managers...</span>
-                        </Spinner>
-                        <h2>Please wait</h2>
-                        <h3>Loading managers list...</h3>
-                    </div>
-                ) : (
-                    <>
-                        <h2 className="mb-3">Select a manager</h2>
-                        <ListGroup>
-                            {unassignedManagers.map(manager => (
-                                <ListGroup.Item
-                                    key={manager.id}
-                                    className={`d-flex justify-content-between align-items-center ${selectedManager === manager.id ? 'bg-dark-subtle border shadow-sm' : ''}`} // Apply class if selected
-                                    action
-                                    onClick={() => handleSelectManager(manager.id)}
-                                >
-                                    <span className="material-symbols-rounded me-2">person</span>
-                                    {selectedManager === manager.id &&
-                                    <Badge className="shadow-sm border p-2">
-                                        Selected
-                                    </Badge>
-                                    }
-                                    <h3>{manager.name}</h3>
-                                </ListGroup.Item>
-                            ))}
-                        </ListGroup>
-                    </>
-                ))}
-            </Modal.Body>
-            <Modal.Footer>
-                <Button variant="secondary" onClick={handleHideModal}>
-                    Close
-                </Button>
-                <Button variant="primary" onClick={handleAssignManager} disabled={!selectedManager}>
-                    Assign Manager
-                </Button>
-            </Modal.Footer>
-        </Modal>
+                <Modal.Header closeButton>
+                    <Modal.Title>Assign Manager</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {assigning ? (
+                        <div className="text-center m-3 p-4">
+                            <Spinner animation="border" role="status">
+                                <span className="visually-hidden">Assigning...</span>
+                            </Spinner>
+                            <h2>Assigning...</h2>
+                            <h3>Please wait</h3>
+                        </div>
+                    ) : (managersLoading ? (
+                        <div className="text-center m-2 p-3">
+                            <Spinner animation="border" role="status">
+                                <span className="visually-hidden">Loading managers...</span>
+                            </Spinner>
+                            <h2>Please wait</h2>
+                            <h3>Loading managers list...</h3>
+                        </div>
+                    ) : (
+                        <>
+                            <h2 className="mb-3">Select a manager</h2>
+                            <ListGroup>
+                                {unassignedManagers.map(manager => (
+                                    <ListGroup.Item
+                                        key={manager.id}
+                                        className={`d-flex justify-content-between align-items-center ${selectedManager === manager.id ? 'bg-dark-subtle border shadow-sm' : ''}`} // Apply class if selected
+                                        action
+                                        onClick={() => handleSelectManager(manager.id)}
+                                    >
+                                        <span className="material-symbols-rounded me-2">person</span>
+                                        {selectedManager === manager.id &&
+                                            <Badge className="shadow-sm border p-2">
+                                                Selected
+                                            </Badge>
+                                        }
+                                        <h3>{manager.name}</h3>
+                                    </ListGroup.Item>
+                                ))}
+                            </ListGroup>
+                        </>
+                    ))}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleHideModal}>
+                        Close
+                    </Button>
+                    <Button variant="primary" onClick={handleAssignManager} disabled={!selectedManager}>
+                        Assign Manager
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </Container>
     </Container>);
 };
