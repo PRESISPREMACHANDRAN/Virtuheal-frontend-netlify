@@ -54,10 +54,10 @@ function Sidebar() {
                             <span className="material-symbols-rounded">inbox</span>
                             <h3>Access feedbacks</h3>
                         </NavLink>
-                        {/*<NavLink className={({isActive}) => isActive ? styles.active : ""} to='/residents/manage'>*/}
-                        {/*    <span className="material-symbols-rounded">location_away</span>*/}
-                        {/*    <h3>Manage residents</h3>*/}
-                        {/*</NavLink>*/}
+                        <NavLink className={({isActive}) => isActive ? styles.active : ""} to='/residents/manage'>
+                            <span className="material-symbols-rounded">location_away</span>
+                            <h3>Manage residents</h3>
+                        </NavLink>
                         <NavLink className={({isActive}) => isActive ? styles.active : ""} to='/managers/add'>
                             <span className="material-symbols-rounded">person_add</span>
                             <h3>Add Care Home manager</h3>

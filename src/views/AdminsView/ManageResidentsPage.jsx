@@ -3,20 +3,19 @@ import {Button, Modal, Form, Table, Container, Spinner, Toast, ToastContainer, I
 import styles from "./ManageResidentsPage.module.css";
 import useAxiosPrivate from "@hooks/useAxiosPrivate";
 import useTopBar from "@hooks/useTopBar.jsx";
-import {EMAIL_REGEX, NAME_REGEX} from "@utils/validations/regex.js";
+import {NAME_REGEX} from "@utils/validations/regex.js";
 
 function ManageResidentsPage() {
-    const [manager, setManager] = useState([]);
+    const [associates, setAssociates] = useState([]);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [selectedManager, setSelectedManager] = useState(null);
-    const [managerForRemoval, setManagerForRemoval] = useState(null);
+    const [selectedAssociate, setSelectedAssociate] = useState(null);
+    const [associateForRemoval, setAssociateForRemoval] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const [editLoading, setEditLoading] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [isValidName, setIsValidName] = useState(false);
-    const [isValidEmail, setIsValidEmail] = useState(false);
     const [showConfirmRemoveModal, setShowConfirmRemoveModal] = useState(false);
     const axiosPrivate = useAxiosPrivate();
     const {setTitle} = useTopBar();
@@ -24,92 +23,92 @@ function ManageResidentsPage() {
 
     useEffect(() => {
         setLoading(true);
-        fetchManager().finally(() => setLoading(false))
+        fetchAssociates().finally(() => setLoading(false))
     }, []);
 
     useEffect(() => {
-        if (selectedManager) {
-            setIsValidName(NAME_REGEX.test(selectedManager.name));
-            setIsValidEmail(EMAIL_REGEX.test(selectedManager.email));
+        console.log(selectedAssociate);
+        if (selectedAssociate?.name) {
+            setIsValidName(NAME_REGEX.test(selectedAssociate?.name));
         }
-    }, [selectedManager]);
+    }, [selectedAssociate]);
 
-    const fetchManager = async () => {
+    const fetchAssociates = async () => {
         try {
-            const managerData = await fetchAllManager();
-            setManager(managerData);
+            const associateData = await fetchAllAssociates();
+            setAssociates(associateData);
         } catch (error) {
-            setError("Failed to fetch some managers. Please try again later.")
+            setErrorMessage("Failed to fetch residents. Please try again later.")
         }
     };
 
-    const fetchAllManager = async (url = `/auth/users/`) => {
-        let allManager = [];
+    const fetchAllAssociates = async (url = `/associates`) => {
+        let allAssociates = [];
         try {
-            const response = await axiosPrivate.get(url, {
-                params: {type: "manager"},
-            });
-            const filteredManager = response?.data?.results
-            allManager = [...filteredManager];
+            const response = await axiosPrivate.get(url);
+            //console.log(response);
+            const filteredAssociates = response?.data?.results
+            allAssociates = [...filteredAssociates];
 
             if (response?.data?.next) {
-                const nextPageManager = await fetchAllManager(response?.data?.next);
-                allManager = [...allManager, ...nextPageManager];
+                const nextPageAssociates = await fetchAllAssociates(response?.data?.next);
+                allAssociates = [...allAssociates, ...nextPageAssociates];
             }
         } catch (error) {
-            setError("Failed to fetch managers. Please try again later.")
+            setErrorMessage("Failed to fetch residents. Please try again later.")
         }
-        return allManager;
+        return allAssociates;
     };
 
-    const handleShowEditModal = (manager) => {
-        setSelectedManager(manager);
+    const handleShowEditModal = (associate) => {
+        setSelectedAssociate(associate);
         setShowEditModal(true);
     };
 
     const handleEditSubmit = async (e) => {
         e.preventDefault();
-        setError("");
+        setErrorMessage("");
         setSuccessMessage("");
         setEditLoading(true);
         try {
-            await axiosPrivate.put(`/auth/users/${selectedManager.id}/`, {
-                name: selectedManager.name,
-                email: selectedManager.email,
+            // Replace PUT with PATCH
+            await axiosPrivate.patch(selectedAssociate.url, {
+                name: selectedAssociate.name,
+                //date_of_birth: selectedAssociate.date_of_birth,
             });
-            setManager((prevManager) =>
-                prevManager.map((manager) =>
-                    manager.id === selectedManager.id ? selectedManager : manager
+            setAssociates((prevAssociates) =>
+                prevAssociates.map((associate) =>
+                    associate.id === selectedAssociate.id ? selectedAssociate : associate
                 )
             );
-            setShowEditModal(false);
-            setSuccessMessage("Successfully updated manager details.");
+            setSuccessMessage("Successfully updated resident details.");
         } catch (error) {
-            console.error("Error:", error);
+            setErrorMessage("Failed to update resident details.");
         } finally {
             setEditLoading(false);
+            setShowEditModal(false);
         }
     };
 
     const handleDelete = async () => {
         setLoading(true);
-        setError("");
+        setErrorMessage("");
         setSuccessMessage("");
         setDeleteLoading(true);
         try {
-            if (managerForRemoval === null) {
-                setError("Please select a manager to delete!");
+            if (associateForRemoval === null) {
+                setErrorMessage("Please select a resident to delete!");
                 return;
             }
-            await axiosPrivate.delete(`/auth/users/${managerForRemoval}/`);
-            setManager((prevManager) =>
-                prevManager.filter((manager) => manager.id !== managerForRemoval)
+            await axiosPrivate.delete(`/associates/${associateForRemoval}/`);
+            setAssociates((prevAssociates) =>
+                prevAssociates.filter((associate) => associate.id !== associateForRemoval)
             );
-            setSuccessMessage("Successfully deleted manager details.");
+            setSuccessMessage("Successfully deleted resident details.");
         } catch (error) {
             if (error.response.status === 500) {
-                setError(
-                    "Cannot remove manager. Manager already has care homes assigned to him."
+                setErrorMessage(
+                    "Cannot remove resident. Resident has existing feedback records."
                 );
             } else if (error.request) {
                 console.error("Error request:", error.request);
@@ -119,12 +118,13 @@ function ManageResidentsPage() {
         } finally {
             setLoading(false);
             setDeleteLoading(false);
+            toggleConfirmRemoveModal();
         }
     };
 
     const toggleConfirmRemoveModal = () => {
         if (showConfirmRemoveModal) {
-            setManagerForRemoval(null);
+            setAssociateForRemoval(null);
         }
         setShowConfirmRemoveModal(!showConfirmRemoveModal);
     };
@@ -144,20 +144,22 @@ function ManageResidentsPage() {
                     <thead className="p-3">
                     <tr>
                         <th>Name</th>
-                        <th>Email</th>
+                        <th>Date of Birth</th>
+                        <th>CareHome</th>
                         <th>Actions</th>
                     </tr>
                     </thead>
                     <tbody>
-                    {manager.map((manager, index) => (
+                    {associates.map((associate, index) => (
                         <tr key={index}>
-                            <td>{manager.name}</td>
-                            <td>{manager.email}</td>
+                            <td>{associate.name}</td>
+                            <td>{associate.date_of_birth}</td>
+                            <td>{associate.care_home.name}</td>
                             <td>
                                 <Button
                                     className={styles.fixButton}
                                     variant="success"
-                                    onClick={() => handleShowEditModal(manager)}
+                                    onClick={() => handleShowEditModal(associate)}
                                     disabled={deleteLoading}
                                 >
                                     Edit
@@ -166,7 +168,7 @@ function ManageResidentsPage() {
                                     className={styles.fixButton}
                                     variant="danger"
                                     onClick={() => {
-                                        setManagerForRemoval(manager.id);
+                                        setAssociateForRemoval(associate.id);
                                         toggleConfirmRemoveModal();
                                     }}
                                     disabled={deleteLoading}
@@ -189,7 +191,7 @@ function ManageResidentsPage() {
 
                 <Modal show={showEditModal} onHide={() => setShowEditModal(false)} centered>
                     <Modal.Header closeButton>
-                        <Modal.Title>Edit Manager</Modal.Title>
+                        <Modal.Title>Edit Associate</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         <Form onSubmit={handleEditSubmit}>
@@ -198,53 +200,29 @@ function ManageResidentsPage() {
                                 <InputGroup hasValidation>
                                     <Form.Control
                                         type="text"
-                                        value={selectedManager?.name || ""}
+                                        value={selectedAssociate?.name || ""}
                                         onChange={(e) =>
-                                            setSelectedManager({
-                                                ...selectedManager,
+                                            setSelectedAssociate({
+                                                ...selectedAssociate,
                                                 name: e.target.value,
                                             })
                                         }
-                                        isValid={isValidName}
-                                        isInvalid={selectedManager?.name && !isValidName}
+                                        isValid={selectedAssociate?.name && isValidName}
+                                        isInvalid={selectedAssociate?.name && !isValidName}
                                         required
                                     />
                                     <Form.Control.Feedback type="valid">
                                         Looks good!
                                     </Form.Control.Feedback>
                                     <Form.Control.Feedback type="invalid">
-                                        Name must be at least 3 characters long. (Only alphabets are allowed)
-                                    </Form.Control.Feedback>
-                                </InputGroup>
-                            </Form.Group>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Email</Form.Label>
-                                <InputGroup hasValidation>
-                                    <Form.Control
-                                        type="email"
-                                        value={selectedManager?.email || ""}
-                                        onChange={(e) =>
-                                            setSelectedManager({
-                                                ...selectedManager,
-                                                email: e.target.value,
-                                            })
-                                        }
-                                        isValid={isValidEmail}
-                                        isInvalid={selectedManager?.email && !isValidEmail}
-                                        required
-                                    />
-                                    <Form.Control.Feedback type="valid">
-                                        Looks good!
-                                    </Form.Control.Feedback>
-                                    <Form.Control.Feedback type="invalid">
-                                        Please enter a valid email.
+                                        Please enter a valid name.
                                     </Form.Control.Feedback>
                                 </InputGroup>
                             </Form.Group>
                             <Button
-                                variant={!isValidName || !isValidEmail ? "outline-danger" : "primary"}
+                                variant={!isValidName ? "outline-danger" : "primary"}
                                 type="submit"
-                                disabled={editLoading || !isValidName || !isValidEmail}
+                                disabled={editLoading || !isValidName}
                             >
                                 {editLoading ? (
                                     <Spinner
@@ -268,12 +246,12 @@ function ManageResidentsPage() {
                         <Modal.Title>Warning</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        Are you sure you want to delete the manager? This action is permanent and cannot be undone.
+                        Are you sure you want to delete the resident? This action is permanent and cannot be undone.
                     </Modal.Body>
                     <Modal.Footer>
                         <Button variant="secondary" onClick={() => {
                             toggleConfirmRemoveModal();
-                            setManagerForRemoval(null);
+                            setAssociateForRemoval(null);
                         }}>
                             Cancel
                         </Button>
@@ -288,10 +266,10 @@ function ManageResidentsPage() {
                     style={{zIndex: 1}}
                 >
                     <Toast
-                        show={!!error}
+                        show={!!errorMessage}
                         bg="danger"
                         className="shadow"
-                        onClose={() => setError("")}
+                        onClose={() => setErrorMessage("")}
                     >
                         <Toast.Header>
                             <h1 className="me-auto">Error!</h1>
@@ -300,7 +278,7 @@ function ManageResidentsPage() {
                             className="text-light p-3"
                         >
                             <h2>
-                                {error}
+                                {errorMessage}
                             </h2>
                         </Toast.Body>
                     </Toast>
