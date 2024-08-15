@@ -1,7 +1,6 @@
 import {Button, Container, Form, Row, Col, InputGroup, Spinner} from "react-bootstrap";
 import {useEffect, useRef, useState} from "react";
 import styles from "@views/SuperAdminsView/AddAdminsPage.module.scss";
-import axios from "@/api/axios.js"
 import BSAlert from "@components/BSAlert.jsx";
 import {EMAIL_REGEX, NAME_REGEX, PWD_REGEX} from "@utils/validations/regex.js";
 import useAxiosPrivate from "@hooks/useAxiosPrivate.jsx";
@@ -52,10 +51,6 @@ function AddAdminsPage() {
         setIsValidPasswdMatch(passwd === passwdConfirm);
     }, [passwd, passwdConfirm])
 
-    useEffect(() => {
-        setErrorMessage('');
-    }, [name, email, passwd, passwdConfirm])
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSuccessMessage("");
@@ -73,7 +68,7 @@ function AddAdminsPage() {
             );
             const data = response?.data;
             setSuccessMessage(`${data.name} has been successfully registered as new Admin.`);
-            setTimeout(() => setSuccessMessage(""), 5000);
+            setTimeout(() => setSuccessMessage(""), 8000);
             setName('');
             setEmail("")
             setPasswd('');
@@ -85,7 +80,7 @@ function AddAdminsPage() {
                 console.log(error.response);
                 if (error.response?.data?.email[0] === "interface user with this email already exists.") {
                     setErrorMessage("An admin account with this email already exists. Try adding with another email.")
-                    setTimeout(() => setErrorMessage(""), 5000);
+                    setTimeout(() => setErrorMessage(""), 8000);
                     setName('');
                     setEmail("")
                     setPasswd('');

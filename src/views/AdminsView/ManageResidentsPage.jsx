@@ -1,5 +1,16 @@
 import {useState, useEffect} from "react";
-import {Button, Modal, Form, Table, Container, Spinner, Toast, ToastContainer, InputGroup} from "react-bootstrap";
+import {
+    Button,
+    Modal,
+    Form,
+    Table,
+    Container,
+    Spinner,
+    Toast,
+    ToastContainer,
+    InputGroup,
+    Alert
+} from "react-bootstrap";
 import styles from "./ManageResidentsPage.module.css";
 import useAxiosPrivate from "@hooks/useAxiosPrivate";
 import useTopBar from "@hooks/useTopBar.jsx";
@@ -140,54 +151,60 @@ function ManageResidentsPage() {
             </Container>)
             :
             <Container fluid className="m-3 border rounded-4 p-4">
-                <Table responsive hover className={styles.carehomeItem}>
-                    <thead className="p-3">
-                    <tr>
-                        <th>Name</th>
-                        <th>Date of Birth</th>
-                        <th>CareHome</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {associates.map((associate, index) => (
-                        <tr key={index}>
-                            <td>{associate.name}</td>
-                            <td>{associate.date_of_birth}</td>
-                            <td>{associate.care_home.name}</td>
-                            <td>
-                                <Button
-                                    className={styles.fixButton}
-                                    variant="success"
-                                    onClick={() => handleShowEditModal(associate)}
-                                    disabled={deleteLoading}
-                                >
-                                    Edit
-                                </Button>
-                                <Button
-                                    className={styles.fixButton}
-                                    variant="danger"
-                                    onClick={() => {
-                                        setAssociateForRemoval(associate.id);
-                                        toggleConfirmRemoveModal();
-                                    }}
-                                    disabled={deleteLoading}
-                                >
-                                    {deleteLoading ? (
-                                        <Spinner
-                                            as="span"
-                                            animation="border"
-                                            size="sm"
-                                            role="status"
-                                            aria-hidden="true"
-                                        />
-                                    ) : "Delete"}
-                                </Button>
-                            </td>
+                {associates?.length ?
+                    <Table responsive hover className={styles.carehomeItem}>
+                        <thead className="p-3">
+                        <tr>
+                            <th>Name</th>
+                            <th>Date of Birth</th>
+                            <th>CareHome</th>
+                            <th>Actions</th>
                         </tr>
-                    ))}
-                    </tbody>
-                </Table>
+                        </thead>
+                        <tbody>
+                        {associates.map((associate, index) => (
+                            <tr key={index}>
+                                <td>{associate.name}</td>
+                                <td>{associate.date_of_birth}</td>
+                                <td>{associate.care_home.name}</td>
+                                <td>
+                                    <Button
+                                        className={styles.fixButton}
+                                        variant="success"
+                                        onClick={() => handleShowEditModal(associate)}
+                                        disabled={deleteLoading}
+                                    >
+                                        Edit
+                                    </Button>
+                                    <Button
+                                        className={styles.fixButton}
+                                        variant="danger"
+                                        onClick={() => {
+                                            setAssociateForRemoval(associate.id);
+                                            toggleConfirmRemoveModal();
+                                        }}
+                                        disabled={deleteLoading}
+                                    >
+                                        {deleteLoading ? (
+                                            <Spinner
+                                                as="span"
+                                                animation="border"
+                                                size="sm"
+                                                role="status"
+                                                aria-hidden="true"
+                                            />
+                                        ) : "Delete"}
+                                    </Button>
+                                </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </Table> :
+                    <Alert variant="info" className="rounded-4 border shadow-sm p-3">
+                        <h2 className="p-3 text-center">No resident data has been registered.<span
+                            className="material-symbols-rounded align-text-top">person_off</span></h2>
+                    </Alert>
+                }
 
                 <Modal show={showEditModal} onHide={() => setShowEditModal(false)} centered>
                     <Modal.Header closeButton>

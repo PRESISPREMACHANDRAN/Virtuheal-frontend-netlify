@@ -33,8 +33,12 @@ export const SearchBar = ({setResults}) => {
         fetchData(value);
     };
 
+    const handleSubmit = (e) => {
+        e.preventDefault();
+    };
+
     return (
-        <Form>
+        <Form onSubmit={handleSubmit}>
             <InputGroup>
                 <InputGroup.Text id="searchIcon">
                     <FaSearch/>

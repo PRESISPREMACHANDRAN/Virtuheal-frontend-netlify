@@ -170,7 +170,10 @@ const CareHomeManagers = () => {
                                                 </Button>
                                             </ListGroup.Item>))) : (
                                             <ListGroup.Item className="text-center">
-                                                No managers assigned
+                                                <Alert variant="warning" className="rounded-4 border shadow-sm p-3">
+                                                    <span className="material-symbols-rounded me-2">warning</span>
+                                                    <h3 className="p-2 text-center">No managers assigned.</h3>
+                                                </Alert>
                                             </ListGroup.Item>)}
                                     </ListGroup>
                                 </Card.Body>
@@ -189,8 +192,8 @@ const CareHomeManagers = () => {
                     </Card>
                 </Col>))}
             </Row> : <Alert variant="info" className="rounded-4 border shadow-sm p-3">
-                <h3 className="text-center">Looks like there are no homes assigned. <span
-                    className="material-symbols-rounded align-text-top">domain_disabled</span></h3>
+                <h2 className="text-center p-3">There are no Care Homes currently assigned. <span
+                    className="material-symbols-rounded align-text-top">domain_disabled</span></h2>
 
             </Alert>
             }
@@ -217,27 +220,34 @@ const CareHomeManagers = () => {
                             <h3>Loading managers list...</h3>
                         </div>
                     ) : (
-                        <>
-                            <h2 className="mb-3">Select a manager</h2>
-                            <ListGroup>
-                                {unassignedManagers.map(manager => (
-                                    <ListGroup.Item
-                                        key={manager.id}
-                                        className={`d-flex justify-content-between align-items-center ${selectedManager === manager.id ? 'bg-dark-subtle border shadow-sm' : ''}`} // Apply class if selected
-                                        action
-                                        onClick={() => handleSelectManager(manager.id)}
-                                    >
-                                        <span className="material-symbols-rounded me-2">person</span>
-                                        {selectedManager === manager.id &&
-                                            <Badge className="shadow-sm border p-2">
-                                                Selected
-                                            </Badge>
-                                        }
-                                        <h3>{manager.name}</h3>
-                                    </ListGroup.Item>
-                                ))}
-                            </ListGroup>
-                        </>
+                        unassignedManagers?.length ?
+                            <>
+                                <h2 className="mb-3">Select a manager</h2>
+                                <ListGroup>
+                                    {unassignedManagers.map(manager => (
+                                        <ListGroup.Item
+                                            key={manager.id}
+                                            className={`d-flex justify-content-between align-items-center ${selectedManager === manager.id ? 'bg-dark-subtle border shadow-sm' : ''}`} // Apply class if selected
+                                            action
+                                            onClick={() => handleSelectManager(manager.id)}
+                                        >
+                                            <span className="material-symbols-rounded me-2">person</span>
+                                            {selectedManager === manager.id &&
+                                                <Badge className="shadow-sm border p-2">
+                                                    Selected
+                                                </Badge>
+                                            }
+                                            <h3>{manager.name}</h3>
+                                        </ListGroup.Item>
+                                    ))}
+                                </ListGroup>
+                            </>
+                            : <Container>
+                                <Alert variant="info" className="rounded-4 border shadow-sm p-3">
+                                    <span className="material-symbols-rounded me-2">person_off</span>
+                                    <h3 className="p-2 text-center">No unassigned managers found.</h3>
+                                </Alert>
+                            </Container>
                     ))}
                 </Modal.Body>
                 <Modal.Footer>

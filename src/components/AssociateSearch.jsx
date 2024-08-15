@@ -74,9 +74,13 @@ const AssociateSearch = () => {
         }
     };
 
+    const handleSubmit = (e) => {
+        e.preventDefault();
+    };
+
     return (<Container fluid className="mx-3 p-5 border rounded-4 text-center">
         <h1 className="mt-3 mb-5">Choose a Resident</h1>
-        <Form className="my-5 mb-3">
+        <Form className="my-5 mb-3" onSubmit={handleSubmit}>
             <FormControl
                 type="text"
                 placeholder="Search"
@@ -133,7 +137,12 @@ const AssociateSearch = () => {
                             </ListGroup.Item>))}
                         </ListGroup>))
                     :
-                    (<Alert variant="info" className="mb-3">No residents found</Alert>)}
+                    (
+                        <Alert variant="info" className="rounded-4 border shadow-sm p-3 mt-5">
+                            <h2 className="p-3 text-center">No residents found. <span
+                                className="material-symbols-rounded align-text-top">person_off</span></h2>
+                        </Alert>
+                    )}
             {associateQuery.isError && (
                 <Alert variant="danger" className="mb-3">{associateQuery.error.message}</Alert>)}
         </section>

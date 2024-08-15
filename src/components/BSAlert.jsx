@@ -3,7 +3,7 @@ import Alert from 'react-bootstrap/Alert';
 function BSAlert({variant, heading, body, trigger, setTrigger}) {
 
     return (
-        <Alert variant={variant} show={trigger} onClose={() => setTrigger("")}>
+        <Alert dismissible variant={variant} show={trigger} onClose={() => setTrigger("")}>
             <Alert.Heading>{heading}</Alert.Heading>
             <h4>
                 {body}

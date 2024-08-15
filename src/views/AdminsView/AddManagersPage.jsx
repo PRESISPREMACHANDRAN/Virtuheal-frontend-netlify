@@ -50,9 +50,6 @@ function AddManagersPage() {
         setIsValidPasswdMatch(passwd === passwdConfirm);
     }, [passwd, passwdConfirm])
 
-    useEffect(() => {
-        setErrorMessage('');
-    }, [name, email, passwd, passwdConfirm])
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -70,7 +67,7 @@ function AddManagersPage() {
             );
             const data = response?.data;
             setSuccessMessage(`${data.name} has been successfully registered as a new manager.`);
-            setTimeout(() => setSuccessMessage(""), 5000);
+            setTimeout(() => setSuccessMessage(""), 8000);
             setName('');
             setEmail("")
             setPasswd('');
@@ -82,7 +79,7 @@ function AddManagersPage() {
                 console.log(error.response);
                 if (error.response?.data?.email[0] === "interface user with this email already exists.") {
                     setErrorMessage("A manager account with this email already exists. Try adding with another email.");
-                    setTimeout(() => setErrorMessage(""), 5000);
+                    setTimeout(() => setErrorMessage(""), 8000);
                     setName("");
                     setEmail("");
                     setPasswd("");

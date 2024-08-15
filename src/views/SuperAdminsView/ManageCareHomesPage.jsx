@@ -9,14 +9,14 @@ import {
     ListGroup,
     Toast,
     ToastContainer,
-    ButtonGroup
+    ButtonGroup, Badge, Alert
 } from "react-bootstrap";
 import styles from "./ManageCareHomesPage.module.css";
 import useAxiosPrivate from "@hooks/useAxiosPrivate";
 import useTopBar from "@hooks/useTopBar.jsx";
 
 function ManageCareHomesPage() {
-    const [careHomeElements, setCareHomeElements] = useState([]);
+    const [careHomes, setCareHomes] = useState([]);
     const [showAssignModal, setShowAssignModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [admins, setAdmins] = useState([]);
@@ -45,7 +45,7 @@ function ManageCareHomesPage() {
     const getCareHomes = async () => {
         try {
             const careHomes = await fetchAllCareHomes();
-            setCareHomeElements(careHomes);
+            setCareHomes(careHomes);
             careHomes.forEach((careHome) => {
                 if (careHome.admin) {
                     fetchAdminName(careHome.admin);
@@ -69,7 +69,7 @@ function ManageCareHomesPage() {
             }
             return results.flat();
         } catch (error) {
-            setErrorMessage("An error occured while getting Care Home details. Please try again later.");
+            setErrorMessage("An error occurred while getting Care Home details. Please try again later.");
         } finally {
             setIsLoading(false);
         }
@@ -116,6 +116,7 @@ function ManageCareHomesPage() {
 
     const handleCloseAssignModal = () => {
         setShowAssignModal(false);
+        setSelectedAdmin(null);
     };
 
     const handleShowEditModal = (careHome) => {
@@ -140,7 +141,7 @@ function ManageCareHomesPage() {
                 return;
             }
             await axiosPrivate.delete(careHomeForRemoval).then(() => setSuccessMessage("Successfully deleted Care Home."))
-            setCareHomeElements((prevElements) =>
+            setCareHomes((prevElements) =>
                 prevElements.filter((elm) => elm.url !== careHomeForRemoval)
             );
             await getCareHomes();
@@ -164,7 +165,7 @@ function ManageCareHomesPage() {
                 selectedCareHome.url,
                 JSON.stringify(updatedCareHome)
             ).then(() => setSuccessMessage("Successfully updated Care Home details."))
-            setCareHomeElements((prevElements) =>
+            setCareHomes((prevElements) =>
                 prevElements.map((elm) =>
                     elm.url === selectedCareHome.url
                         ? {
@@ -253,78 +254,84 @@ function ManageCareHomesPage() {
                 </Container>)
                 :
                 <Container fluid className="m-3 p-4 border rounded-4">
-                    <Table responsive hover
-                           className="shadow"
-                    >
-                        <thead>
-                        <tr>
-                            <th className={styles.fixedWidthColumn}>Name</th>
-                            <th className={styles.fixedWidthColumn}>Code</th>
-                            <th className={styles.fixedWidthColumn}>Address</th>
-                            <th className={styles.fixedWidthColumn}>Admin</th>
-                            <th className={styles.fixedWidthColumn}>Action</th>
-                        </tr>
-                        </thead>
-                        <tbody
-                            className="rounded-4 border"
+                    {careHomes?.length ?
+                        <Table responsive hover
+                               className="shadow"
                         >
-                        {careHomeElements.map((result) => (
-                            <tr key={result.url}>
-                                <td className={styles.fixedWidthColumn}>{result.name}</td>
-                                <td className={styles.fixedWidthColumn}>{result.code}</td>
-                                <td className={styles.fixedWidthColumn}>{result.address}</td>
-                                <td>
-                                    {result.admin ?
-                                        (loadingAdmins ?
-                                                <Spinner animation="border" role="status">
-                                                    <span className="visually-hidden">Loading...</span>
-                                                </Spinner>
-                                                :
-                                                <ButtonGroup>
-                                                    <Button variant="outline-light"
-                                                            className="px-3 text-black shadow">{adminNames[result.admin]}</Button>
-                                                    <Button
-                                                        variant="danger"
-                                                        className="shadow"
-                                                        onClick={() => {
-                                                            setSelectedCareHomeUrl(result.url);
-                                                            toggleConfirmUnassignModal();
-                                                        }}
-                                                    >
-                                                        <span className="material-symbols-rounded">delete</span>
-                                                    </Button>
-                                                </ButtonGroup>
-                                        ) : (
-                                            <Button
-                                                onClick={() => handleShowAssignModal(result.url)}
-                                            >
-                                                Assign Admin
-                                            </Button>
-                                        )}
-                                </td>
-                                <td className={styles.fixedWidthColumn}>
-                                    <Button
-                                        className="shadow p-2"
-                                        variant="success"
-                                        onClick={() => handleShowEditModal(result)}
-                                    >
-                                        Edit
-                                    </Button>
-                                    <Button
-                                        className="shadow mx-3 p-2"
-                                        variant="danger"
-                                        onClick={() => {
-                                            setCareHomeForRemoval(result.url);
-                                            toggleConfirmDeletionModal();
-                                        }}
-                                    >
-                                        Delete
-                                    </Button>
-                                </td>
+                            <thead>
+                            <tr>
+                                <th className={styles.fixedWidthColumn}>Name</th>
+                                <th className={styles.fixedWidthColumn}>Code</th>
+                                <th className={styles.fixedWidthColumn}>Address</th>
+                                <th className={styles.fixedWidthColumn}>Admin</th>
+                                <th className={styles.fixedWidthColumn}>Action</th>
                             </tr>
-                        ))}
-                        </tbody>
-                    </Table>
+                            </thead>
+                            <tbody
+                                className="rounded-4 border"
+                            >
+                            {careHomes.map((result) => (
+                                <tr key={result.url}>
+                                    <td className={styles.fixedWidthColumn}>{result.name}</td>
+                                    <td className={styles.fixedWidthColumn}>{result.code}</td>
+                                    <td className={styles.fixedWidthColumn}>{result.address}</td>
+                                    <td>
+                                        {result.admin ?
+                                            (loadingAdmins ?
+                                                    <Spinner animation="border" role="status">
+                                                        <span className="visually-hidden">Loading...</span>
+                                                    </Spinner>
+                                                    :
+                                                    <ButtonGroup>
+                                                        <Button variant="outline-light"
+                                                                className="px-3 text-black shadow">{adminNames[result.admin]}</Button>
+                                                        <Button
+                                                            variant="danger"
+                                                            className="shadow"
+                                                            onClick={() => {
+                                                                setSelectedCareHomeUrl(result.url);
+                                                                toggleConfirmUnassignModal();
+                                                            }}
+                                                        >
+                                                            <span className="material-symbols-rounded">delete</span>
+                                                        </Button>
+                                                    </ButtonGroup>
+                                            ) : (
+                                                <Button
+                                                    onClick={() => handleShowAssignModal(result.url)}
+                                                >
+                                                    Assign Admin
+                                                </Button>
+                                            )}
+                                    </td>
+                                    <td className={styles.fixedWidthColumn}>
+                                        <Button
+                                            className="shadow p-2"
+                                            variant="success"
+                                            onClick={() => handleShowEditModal(result)}
+                                        >
+                                            Edit
+                                        </Button>
+                                        <Button
+                                            className="shadow mx-3 p-2"
+                                            variant="danger"
+                                            onClick={() => {
+                                                setCareHomeForRemoval(result.url);
+                                                toggleConfirmDeletionModal();
+                                            }}
+                                        >
+                                            Delete
+                                        </Button>
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </Table> :
+                        <Alert variant="info" className="rounded-4 border shadow-sm p-3">
+                            <h2 className="p-3 text-center">No Care Home data have been registered. <span
+                                className="material-symbols-rounded align-text-top">domain_disabled</span></h2>
+                        </Alert>
+                    }
 
                     <Modal show={showAssignModal} onHide={handleCloseAssignModal} centered>
                         <Modal.Header closeButton>
@@ -342,8 +349,15 @@ function ManageCareHomesPage() {
                                     {admins.map((admin) => (
                                         <ListGroup.Item
                                             key={admin.id}
-                                            className="d-flex justify-content-between align-items-center"
+                                            className={`d-flex justify-content-between align-items-center ${selectedAdmin?.id === admin.id ? 'bg-dark-subtle border shadow-sm' : ''}`} // Apply class if selected
+                                            action
                                         >
+                                            <span className="material-symbols-rounded me-2">person</span>
+                                            {selectedAdmin?.id === admin.id &&
+                                                <Badge className="shadow-sm border p-2">
+                                                    Selected
+                                                </Badge>
+                                            }
                                             <h3>{admin.name}</h3>
                                             <Button
                                                 variant="primary"
@@ -355,7 +369,12 @@ function ManageCareHomesPage() {
                                     ))}
                                 </ListGroup>
                             ) : (
-                                <p>No admins available</p>
+                                <Container>
+                                    <Alert variant="info" className="rounded-4 border shadow-sm p-3">
+                                        <span className="material-symbols-rounded me-2">person_off</span>
+                                        <h3 className="p-2 text-center">Looks like there are no assignable admins.</h3>
+                                    </Alert>
+                                </Container>
                             )}
                         </Modal.Body>
                         <Modal.Footer>

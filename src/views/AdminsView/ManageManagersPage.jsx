@@ -1,12 +1,23 @@
 import {useState, useEffect} from "react";
-import {Button, Modal, Form, Table, Container, Spinner, Toast, ToastContainer, InputGroup} from "react-bootstrap";
+import {
+    Button,
+    Modal,
+    Form,
+    Table,
+    Container,
+    Spinner,
+    Toast,
+    ToastContainer,
+    InputGroup,
+    Alert
+} from "react-bootstrap";
 import styles from "./ManageManagersPage.module.css";
 import useAxiosPrivate from "@hooks/useAxiosPrivate";
 import useTopBar from "@hooks/useTopBar.jsx";
 import {EMAIL_REGEX, NAME_REGEX} from "@utils/validations/regex.js";
 
 function ManageManagersPage() {
-    const [manager, setManager] = useState([]);
+    const [managers, setManagers] = useState([]);
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedManager, setSelectedManager] = useState(null);
     const [managerForRemoval, setManagerForRemoval] = useState(null);
@@ -37,7 +48,7 @@ function ManageManagersPage() {
     const fetchManager = async () => {
         try {
             const managerData = await fetchAllManager();
-            setManager(managerData);
+            setManagers(managerData);
         } catch (error) {
             setErrorMessage("Failed to fetch some managers. Please try again later.")
         }
@@ -77,7 +88,7 @@ function ManageManagersPage() {
                 name: selectedManager.name,
                 email: selectedManager.email,
             });
-            setManager((prevManager) =>
+            setManagers((prevManager) =>
                 prevManager.map((manager) =>
                     manager.id === selectedManager.id ? selectedManager : manager
                 )
@@ -102,7 +113,7 @@ function ManageManagersPage() {
                 return;
             }
             await axiosPrivate.delete(`/auth/users/${managerForRemoval}/`);
-            setManager((prevManager) =>
+            setManagers((prevManager) =>
                 prevManager.filter((manager) => manager.id !== managerForRemoval)
             );
             setSuccessMessage("Successfully deleted manager details.");
@@ -141,52 +152,57 @@ function ManageManagersPage() {
             </Container>)
             :
             <Container fluid className="m-3 border rounded-4 p-4">
-                <Table responsive hover className={styles.carehomeItem}>
-                    <thead className="p-3">
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {manager.map((manager, index) => (
-                        <tr key={index}>
-                            <td>{manager.name}</td>
-                            <td>{manager.email}</td>
-                            <td>
-                                <Button
-                                    className={styles.fixButton}
-                                    variant="success"
-                                    onClick={() => handleShowEditModal(manager)}
-                                    disabled={deleteLoading}
-                                >
-                                    Edit
-                                </Button>
-                                <Button
-                                    className={styles.fixButton}
-                                    variant="danger"
-                                    onClick={() => {
-                                        setManagerForRemoval(manager.id);
-                                        toggleConfirmRemoveModal();
-                                    }}
-                                    disabled={deleteLoading}
-                                >
-                                    {deleteLoading ? (
-                                        <Spinner
-                                            as="span"
-                                            animation="border"
-                                            size="sm"
-                                            role="status"
-                                            aria-hidden="true"
-                                        />
-                                    ) : "Delete"}
-                                </Button>
-                            </td>
+                {managers?.length ?
+                    <Table responsive hover className={styles.carehomeItem}>
+                        <thead className="p-3">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Actions</th>
                         </tr>
-                    ))}
-                    </tbody>
-                </Table>
+                        </thead>
+                        <tbody>
+                        {managers.map((manager, index) => (
+                            <tr key={index}>
+                                <td>{manager.name}</td>
+                                <td>{manager.email}</td>
+                                <td>
+                                    <Button
+                                        className={styles.fixButton}
+                                        variant="success"
+                                        onClick={() => handleShowEditModal(manager)}
+                                        disabled={deleteLoading}
+                                    >
+                                        Edit
+                                    </Button>
+                                    <Button
+                                        className={styles.fixButton}
+                                        variant="danger"
+                                        onClick={() => {
+                                            setManagerForRemoval(manager.id);
+                                            toggleConfirmRemoveModal();
+                                        }}
+                                        disabled={deleteLoading}
+                                    >
+                                        {deleteLoading ? (
+                                            <Spinner
+                                                as="span"
+                                                animation="border"
+                                                size="sm"
+                                                role="status"
+                                                aria-hidden="true"
+                                            />
+                                        ) : "Delete"}
+                                    </Button>
+                                </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </Table> :
+                    <Alert variant="info" className="rounded-4 border shadow-sm p-3">
+                        <h2 className="p-3 text-center">No Care Home manager users have been registered. <span
+                            className="material-symbols-rounded align-text-top">person_off</span></h2>
+                    </Alert>}
 
                 <Modal show={showEditModal} onHide={() => setShowEditModal(false)} centered>
                     <Modal.Header closeButton>
